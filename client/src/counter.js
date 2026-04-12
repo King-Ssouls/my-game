@@ -1,9 +1,12 @@
-export function setupCounter(element) {
-  let counter = 0
-  const setCounter = (count) => {
-    counter = count
-    element.innerHTML = `Count is ${counter}`
-  }
-  element.addEventListener('click', () => setCounter(counter + 1))
-  setCounter(0)
-}
+import { defineConfig } from 'vite';
+export default defineConfig ({
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        open: true
+    },
+    preview: {
+        host: '0.0.0.0',
+        port: 4173
+    }
+});
