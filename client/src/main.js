@@ -1,15 +1,17 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import gameConfig from './config/gameConfig.js';
 import './styles/main.css';
 
 function startGame() {
-    if(window.__MY_GAME__) {
+    if (window.__MY_GAME__) {
         return;
     }
 
-    const game = new Phaser.Game(gameConfig);
-    window.__MY_GAME__ = game;
-
+    window.__MY_GAME__ = new Phaser.Game(gameConfig);
 }
 
-window.addEventListener("DOMContentLoaded", startGame);
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', startGame, { once: true });
+} else {
+    startGame();
+}
