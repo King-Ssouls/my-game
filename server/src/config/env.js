@@ -14,9 +14,13 @@ const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     PORT: toNumber(process.env.PORT, 5000),
     CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
-    MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/my_game_db',
-    JWT_SECRET: process.env.JWT_SECRET || 'fK_92ksLxP_qweRty_2026',
+    MONGO_URI: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/glimmer_db',
+    JWT_SECRET: process.env.JWT_SECRET,
 };
+
+if (!env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is required');
+}
 
 const allowedEnvironments = ['development', 'production', 'test'];
 

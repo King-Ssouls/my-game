@@ -8,9 +8,16 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
+# Environment files
 .env
 .env.*
+*.env
+*.env.*
+**/.env
+**/.env.*
 !.env.example
+!*.env.example
+!**/.env.example
 !client/.env.example
 !server/.env.example
 
