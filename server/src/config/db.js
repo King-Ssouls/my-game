@@ -21,7 +21,7 @@ async function connectDB() {
 
         return mongoose.connection;
     } catch (error) {
-        console.error('оишбка подключения MongoDB:', error.message);
+        console.error('ошибка подключения MongoDB:', error.message);
         throw error;
     }
 }
