@@ -10,14 +10,20 @@ function createAppError(status, message) {
 };
 
 function makeNicknamefromEmail(email) {
-    return email
-    .split('@')[0]
-    .replace(/[^a-zA-Z0-9_]/g, '_')
-    .slice(0, 30) || 'player';
+    const nickname = email
+        .split('@')[0]
+        .replace(/[^a-zA-Z0-9_]/g, '_')
+        .slice(0, 16);
+
+    return nickname.length >= 4 ? nickname : 'player';
 };
 
-function normolazeEmail(email) {
+function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
+};
+
+function isValidEmail(email) {
+    return /^\S+@\S+\.\S+$/.test(email);
 };
 
 function sanitizeUser(userDocument) {
@@ -66,9 +72,9 @@ async function findOrCreateProgress(userId) {
 };
 
 async function register(payload) {
-    const email = normolazeEmail(payload.email);
+    const email = normalizeEmail(payload.email);
     const password = String(payload.password || '');
-    const nicname = String(payload.nicname || '').trim();
+    const nickname = String(payload.nickname || payload.nicname || '').trim();
 
     if (!email) {
         throw createAppError(400, "Требуется электронная почта");
@@ -104,6 +110,38 @@ async function register(payload) {
         userId: user._id
     });
 
+    const token = signAccessToken({
+        sub: user._id.toString(),
+        email: user.email,
+        role: user.role
+    });
+
+    return {
+        token,
+        user: sanitizeUser(user),
+        progress: sanitizeProgress(progress)
+    };
+};
+
+async function login(payload) {
+    const email = normalizeEmail(payload.email);
+    const password = String(payload.password || '');
+
+    if (!email || !password) {
+        throw createAppError(400, 'Email and password are required');
+    }
+
+    const user = await User.findOne({ email }).select('+passwordHash');
+    if (!user) {
+        throw createAppError(401, 'Invalid email or password');
+    }
+
+    const passwordMatches = await comparePassword(password, user.passwordHash);
+    if (!passwordMatches) {
+        throw createAppError(401, 'Invalid email or password');
+    }
+
+    const progress = await findOrCreateProgress(user._id);
     const token = signAccessToken({
         sub: user._id.toString(),
         email: user.email,

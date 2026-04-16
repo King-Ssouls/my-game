@@ -51,12 +51,12 @@ const progressSchema = new mongoose.Schema(
             default: 1,
         },
 
-        toralStore: {
+        totalScore: {
             type: Number,
             min: 0,
             default: 0
         },
-        totalDeath: {
+        totalDeaths: {
             type: Number,
             min: 0,
             default: 0

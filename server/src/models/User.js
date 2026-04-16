@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema(
     {
         email: {
-            name: String,
+            type: String,
             required: [true, "email required"],
-            minlenght: 4,
-            maxlenght: 50, 
+            minlength: 4,
+            maxlength: 50,
             unique: true,
             lowercase: true,
             trim: true,
@@ -19,13 +19,13 @@ const userSchema = new mongoose.Schema(
             select: false,
         },
 
-        niclname: {
+        nickname: {
             type: String,
             required: [true, "nickname required"],
             trim: true,
             unique: true,
-            minlenght: 4,
-            maxlenght: 16,
+            minlength: 4,
+            maxlength: 16,
         },
 
         avatarUrl: {
