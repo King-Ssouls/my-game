@@ -1,19 +1,19 @@
 ﻿import Phaser from 'phaser';
 
 class BootScene extends Phaser.Scene {
-  constructor() {
-    super('BootScene');
-  }
+    constructor() {
+        super('BootScene');
+    }
 
   async create() {
-    if (document.fonts) {
-      await Promise.all([
-        document.fonts.load('48px "Press Start 2P"'),
-        document.fonts.load('24px "Press Start 2P"'),
-        document.fonts.load('20px "Press Start 2P"'),
-        document.fonts.load('18px "Press Start 2P"'),
-      ]);
-    }
+      if (document.fonts) {
+          await Promise.all([
+              document.fonts.load('48px "Press Start 2P"'),
+              document.fonts.load('24px "Press Start 2P"'),
+              document.fonts.load('20px "Press Start 2P"'),
+              document.fonts.load('18px "Press Start 2P"'),
+          ]);
+      }
 
     const width = this.scale.width;
     const height = this.scale.height;

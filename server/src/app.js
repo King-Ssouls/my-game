@@ -11,8 +11,8 @@ app.disable('x-powered-by');
 
 app.use(
     cors({
-      origin: env.CLIENT_URL,
-      credentials: true,
+        origin: env.CLIENT_URL,
+        credentials: true,
     }),
 );
 
@@ -35,17 +35,17 @@ app.get('/', (req, res) => {
 
 app.get('/api/health', (req, res) => {
     res.json({
-      ok: true,
-      service: 'glimmer-api',
-      env: env.NODE_ENV,
-      time: new Date().toISOString(),
+        ok: true,
+        service: 'glimmer-api',
+        env: env.NODE_ENV,
+        time: new Date().toISOString(),
     });
 });
 
 app.use((req, res) => {
     res.status(404).json({
-      ok: false,
-      message: 'Маршрут не найден',
+        ok: false,
+        message: 'Маршрут не найден',
     });
 });
 
