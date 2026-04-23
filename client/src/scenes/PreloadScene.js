@@ -9,10 +9,55 @@ export default class PreloadScene extends Phaser.Scene {
         super('PreloadScene');
 
         this.statusText = null;
+        this.progressBar = null;
+        this.progressBox = null;
     }
     
     preload() {
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        this.cameras.main.setBackgroundColor('#0f1720');
+
+        this.add
+            .rectangle(width / 2, height / 2, 420, 150, 0x16202b, 1)
+            .setStrokeStyle(2, 0x2b3c4d);
+
+        this.add
+            .text(width / 2, height / 2 - 45, 'Загрузка', {
+                fontFamily: 'Arial',
+                fontSize: '28px',
+                color: '#ffffff'
+            })
+            .setOrigin(0.5);
+
+        this.statusText = this.add
+            .text(width / 2, height / 2 - 5, '0%', {
+                fontFamily: 'Arial',
+                fontSize: '20px',
+                color: '#9fd3ff'
+            })
+            .setOrigin(0.5);
+
+        this.progressBox = this.add
+            .rectangle(width / 2, height / 2 + 38, 280, 18, 0x233142)
+            .setOrigin(0.5);
+
+        this.progressBar = this.add
+            .rectangle(width / 2 - 140, height / 2 + 38, 0, 18, 0x4fc3f7)
+            .setOrigin(0, 0.5);
+
         this.load.image('pixel', warImage);
+
+        this.load.on('progress', (value) => {
+            const percent = Math.round(value * 100);
+            this.statusText.setText(`${percent}%`);
+            this.progressBar.width = 280 * value;
+        });
+
+        this.load.on('complete', () => {
+            this.statusText.setText('Проверка сессии');
+        });
     }
 
     async create() {
@@ -27,25 +72,27 @@ export default class PreloadScene extends Phaser.Scene {
         const height = this.scale.height;
 
         this.cameras.main.setBackgroundColor('#0f1720');
-
-        this.add.rectangle(width / 2, height / 2, 420, 120, 0x16202b, 1)
-        .setStrokeStyle(2, 0x2b3c4d);
+        this.children.removeAll();
 
         this.add
-        .text(width / 2, height / 2 - 34, 'Загрузка', {
-            fontFamily: '"Press Start 2P"',
-            fontSize: '28px',
-            color: '#ffffff'
-        })
-        .setOrigin(0.5);
+            .rectangle(width / 2, height / 2, 420, 120, 0x16202b, 1)
+            .setStrokeStyle(2, 0x2b3c4d);
+
+        this.add
+            .text(width / 2, height / 2 - 34, 'Загрузка', {
+                fontFamily: '"Press Start 2P"',
+                fontSize: '28px',
+                color: '#ffffff'
+            })
+            .setOrigin(0.5);
 
         this.statusText = this.add
-        .text(width / 2, height / 2 + 18, 'Проверка сессии', {
-            fontFamily: '"Press Start 2P"',
-            fontSize: '20px',
-            color: '#9fd3ff'
-        })
-        .setOrigin(0.5);
+            .text(width / 2, height / 2 + 18, 'Проверка сессии', {
+                fontFamily: '"Press Start 2P"',
+                fontSize: '20px',
+                color: '#9fd3ff'
+            })
+            .setOrigin(0.5);
 
         await this.getNextSceneName();
     }
@@ -54,8 +101,7 @@ export default class PreloadScene extends Phaser.Scene {
         try {
             authStore.hydrate();
 
-            if (authStore.isUserLoggedIn()) {
-
+            if (authStore.isAuthenticated()) {
                 const result = await authApi.getMe();
 
                 authStore.setSession({
