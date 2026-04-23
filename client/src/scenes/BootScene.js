@@ -21,7 +21,7 @@ export default class BootScene extends Phaser.Scene {
 
         this.add
         .text(width / 2, height / 2 - 40, 'glimmer', {
-            fontFamily: '"Press Start 2P"',я
+            fontFamily: '"Press Start 2P"',
             fontSize: '52px',
             color: '#ffffff',
             fontStyle: 'bold'
