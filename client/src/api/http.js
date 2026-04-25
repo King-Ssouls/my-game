@@ -2,6 +2,12 @@ import { getToken } from '../utils/auth.js';
 
 const API_BASE_URL = 'http://localhost:5000';
 
+const MESSAGE_TRANSLATIONS = {
+    'Email and password are required': 'Введите email и пароль',
+    'Invalid email or password': 'Неверный email или пароль',
+    'Failed to fetch': 'Не удалось подключиться к серверу',
+    'Network request failed': 'Не удалось подключиться к серверу'
+};
 
 function normalizeErrorMessage(message, status) {
     if (message && MESSAGE_TRANSLATIONS[message]) {

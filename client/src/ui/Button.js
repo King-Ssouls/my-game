@@ -5,6 +5,8 @@ export default class Button {
         type = 'button',
         variant = 'primary',
         width = '100%',
+        fontFamily = 'Arial, sans-serif',
+        fontSize = '15px',
         onClick = null
     })
     {
@@ -15,24 +17,17 @@ export default class Button {
         this.element.style.width = width;
         this.element.style.padding = '12px 16px';
         this.element.style.borderRadius = '14px';
-        this.element.style.border = 'none';
-        this.element.style.fontSize = '15px';
+        this.element.style.fontSize = fontSize;
         this.element.style.fontWeight = '700';
-        this.element.style.fontFamily = 'Arial, sans-serif';
+        this.element.style.fontFamily = fontFamily;
+        this.element.style.boxShadow = 'none';
+        this.element.style.textShadow = 'none';
 
         const variants = {
             primary: {
-                background: '#4fc3f7',
-                color: '#0b1220'
-            },
-            secondary: {
-                background: '#334155',
+                background: '#9702A7',
                 color: '#ffffff'
             },
-            danger: {
-                background: '#ef4444',
-                color: '#ffffff'
-            }
         };
 
         const palette = variants[variant] || variants.primary;

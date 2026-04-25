@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import authStore from '../store/authStore.js';
 import authApi from '../api/authApi.js';
-import warImage from '../assets/images/backgrounds/War.png';
+import forestImage from '../assets/images/backgrounds/forest.png';
 
 export default class PreloadScene extends Phaser.Scene {
     constructor() {
@@ -47,7 +47,7 @@ export default class PreloadScene extends Phaser.Scene {
             .rectangle(width / 2 - 140, height / 2 + 38, 0, 18, 0x4fc3f7)
             .setOrigin(0, 0.5);
 
-        this.load.image('pixel', warImage);
+        this.load.image('menuForest', forestImage);
 
         this.load.on('progress', (value) => {
             const percent = Math.round(value * 100);
