@@ -7,24 +7,24 @@ function createAppError(status, message) {
     const error = new Error(message);
     error.status = status;
     return error;
-};
+}
 
-function makeNicknamefromEmail(email) {
+function makeNicknameFromEmail(email) {
     const nickname = email
         .split('@')[0]
         .replace(/[^a-zA-Z0-9_]/g, '_')
         .slice(0, 16);
 
     return nickname.length >= 4 ? nickname : 'player';
-};
+}
 
 function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
-};
+}
 
 function isValidEmail(email) {
     return /^\S+@\S+\.\S+$/.test(email);
-};
+}
 
 function sanitizeUser(userDocument) {
     return {
@@ -36,23 +36,23 @@ function sanitizeUser(userDocument) {
         createdAt: userDocument.createdAt,
         updatedAt: userDocument.updatedAt
     };
-};
+}
 
 function sanitizeProgress(progressDocument) {
-  return {
-    id: progressDocument._id.toString(),
-    userId: progressDocument.userId.toString(),
-    unlockedLevels: progressDocument.unlockedLevels,
-    completedLevels: progressDocument.completedLevels,
-    levelStars: progressDocument.levelStars,
-    currentLevel: progressDocument.currentLevel,
-    totalScore: progressDocument.totalScore,
-    totalDeaths: progressDocument.totalDeaths,
-    totalPlayTime: progressDocument.totalPlayTime,
-    createdAt: progressDocument.createdAt,
-    updatedAt: progressDocument.updatedAt
-  };
-};
+    return {
+        id: progressDocument._id.toString(),
+        userId: progressDocument.userId.toString(),
+        unlockedLevels: progressDocument.unlockedLevels,
+        completedLevels: progressDocument.completedLevels,
+        levelStars: progressDocument.levelStars,
+        currentLevel: progressDocument.currentLevel,
+        totalScore: progressDocument.totalScore,
+        totalDeaths: progressDocument.totalDeaths,
+        totalPlayTime: progressDocument.totalPlayTime,
+        createdAt: progressDocument.createdAt,
+        updatedAt: progressDocument.updatedAt
+    };
+}
 
 async function findOrCreateProgress(userId) {
     const progress = await Progress.findOneAndUpdate(
@@ -60,7 +60,7 @@ async function findOrCreateProgress(userId) {
         {
             $setOnInsert: {
                 userId
-        }
+            }
         },
         {
             new: true,
@@ -68,8 +68,9 @@ async function findOrCreateProgress(userId) {
             setDefaultsOnInsert: true
         }
     );
+
     return progress;
-};
+}
 
 async function register(payload) {
     const email = normalizeEmail(payload.email);
@@ -77,29 +78,34 @@ async function register(payload) {
     const nickname = String(payload.nickname || payload.nicname || '').trim();
 
     if (!email) {
-        throw createAppError(400, "Требуется электронная почта");
+        throw createAppError(400, 'Введите email');
     }
+
     if (!isValidEmail(email)) {
-        throw createAppError(400, "Неверная фформа электронной почты");
+        throw createAppError(400, 'Введите корректный email');
     }
-    if (!password)  {
-        throw createAppError(400, "Пароль обязателен");
+
+    if (!password) {
+        throw createAppError(400, 'Введите пароль');
     }
+
     if (password.length < 6) {
-        throw createAppError(400, "Пароль должен быть 6 символов");
+        throw createAppError(400, 'Пароль должен содержать минимум 6 символов');
     }
+
     if (password.length > 20) {
-        throw createAppError(400, "Пароль не может быть больше 20 символов");
+        throw createAppError(400, 'Пароль не может быть длиннее 20 символов');
     }
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-        throw createAppError(409, "Почта уже занята");
+        throw createAppError(409, 'Этот email уже занят');
     }
 
     const passwordHash = await hashPassword(password);
-    const finalNickname = nickname || makeNicknamefromEmail(email);
-    
+    const finalNickname = nickname || makeNicknameFromEmail(email);
+
     const user = await User.create({
         email,
         passwordHash,
@@ -121,24 +127,26 @@ async function register(payload) {
         user: sanitizeUser(user),
         progress: sanitizeProgress(progress)
     };
-};
+}
 
 async function login(payload) {
     const email = normalizeEmail(payload.email);
     const password = String(payload.password || '');
 
     if (!email || !password) {
-        throw createAppError(400, 'Email and password are required');
+        throw createAppError(400, 'Введите email и пароль');
     }
 
     const user = await User.findOne({ email }).select('+passwordHash');
+
     if (!user) {
-        throw createAppError(401, 'Invalid email or password');
+        throw createAppError(401, 'Неверный email или пароль');
     }
 
     const passwordMatches = await comparePassword(password, user.passwordHash);
+
     if (!passwordMatches) {
-        throw createAppError(401, 'Invalid email or password');
+        throw createAppError(401, 'Неверный email или пароль');
     }
 
     const progress = await findOrCreateProgress(user._id);
@@ -153,26 +161,28 @@ async function login(payload) {
         user: sanitizeUser(user),
         progress: sanitizeProgress(progress)
     };
-};
+}
 
 async function getCurrentUser(userId) {
     if (!userId) {
-        throw createAppError(401, "прервать выполнение")
+        throw createAppError(401, 'Требуется авторизация');
     }
+
     const user = await User.findById(userId);
 
-    if(!user) {
-        throw createAppError(404, "Данный пользователь не найден");
+    if (!user) {
+        throw createAppError(404, 'Пользователь не найден');
     }
+
     const progress = await findOrCreateProgress(user._id);
 
     return {
         user: sanitizeUser(user),
         progress: sanitizeProgress(progress)
     };
-};
+}
 
-module.exports ={
+module.exports = {
     register,
     login,
     getCurrentUser

@@ -14,11 +14,7 @@ export default class Notification {
         this.element.style.color = '#ffffff';
         this.element.style.fontSize = '14px';
         this.element.style.fontWeight = '600';
-        this.element.style.lineHeight = '1.4';
-        this.element.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.25)';
-        this.element.style.opacity = '0';
-        this.element.style.transform = 'translateY(-8px)';
-        this.element.style.pointerEvents = 'none';
+        this.element.style.fontFamily = 'Arial, sans-serif';
 
         this.container.appendChild(this.element);
     }

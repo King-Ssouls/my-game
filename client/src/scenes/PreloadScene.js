@@ -1,7 +1,6 @@
-import Phaser from "phaser";
+import Phaser from 'phaser';
 import authStore from '../store/authStore.js';
 import authApi from '../api/authApi.js';
-
 import warImage from '../assets/images/backgrounds/War.png';
 
 export default class PreloadScene extends Phaser.Scene {
@@ -11,8 +10,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.statusText = null;
         this.progressBar = null;
         this.progressBox = null;
+        this.extraDelayMs = 500;
     }
-    
+
     preload() {
         const width = this.scale.width;
         const height = this.scale.height;
@@ -25,16 +25,16 @@ export default class PreloadScene extends Phaser.Scene {
 
         this.add
             .text(width / 2, height / 2 - 45, 'Загрузка', {
-                fontFamily: 'Arial',
-                fontSize: '28px',
+                fontFamily: '"Press Start 2P"',
+                fontSize: '24px',
                 color: '#ffffff'
             })
             .setOrigin(0.5);
 
         this.statusText = this.add
             .text(width / 2, height / 2 - 5, '0%', {
-                fontFamily: 'Arial',
-                fontSize: '20px',
+                fontFamily: '"Press Start 2P"',
+                fontSize: '16px',
                 color: '#9fd3ff'
             })
             .setOrigin(0.5);
@@ -56,15 +56,15 @@ export default class PreloadScene extends Phaser.Scene {
         });
 
         this.load.on('complete', () => {
-            this.statusText.setText('Проверка сессии');
+            this.statusText.setText('Проверка');
         });
     }
 
     async create() {
         if (document.fonts) {
             await Promise.all([
-                document.fonts.load('28px "Press Start 2P"'),
-                document.fonts.load('20px "Press Start 2P"')
+                document.fonts.load('24px "Press Start 2P"'),
+                document.fonts.load('16px "Press Start 2P"')
             ]);
         }
 
@@ -72,6 +72,7 @@ export default class PreloadScene extends Phaser.Scene {
         const height = this.scale.height;
 
         this.cameras.main.setBackgroundColor('#0f1720');
+        this.cameras.main.fadeIn(250, 0, 0, 0);
         this.children.removeAll();
 
         this.add
@@ -81,15 +82,15 @@ export default class PreloadScene extends Phaser.Scene {
         this.add
             .text(width / 2, height / 2 - 34, 'Загрузка', {
                 fontFamily: '"Press Start 2P"',
-                fontSize: '28px',
+                fontSize: '24px',
                 color: '#ffffff'
             })
             .setOrigin(0.5);
 
         this.statusText = this.add
-            .text(width / 2, height / 2 + 18, 'Проверка сессии', {
+            .text(width / 2, height / 2 + 18, 'Проверка', {
                 fontFamily: '"Press Start 2P"',
-                fontSize: '20px',
+                fontSize: '16px',
                 color: '#9fd3ff'
             })
             .setOrigin(0.5);
@@ -98,6 +99,8 @@ export default class PreloadScene extends Phaser.Scene {
     }
 
     async getNextSceneName() {
+        let nextScene = 'LoginScene';
+
         try {
             authStore.hydrate();
 
@@ -110,13 +113,25 @@ export default class PreloadScene extends Phaser.Scene {
                     progress: result.progress
                 });
 
-                this.scene.start('MenuScene');
-                return;
+                nextScene = 'MenuScene';
             }
         } catch (error) {
             authStore.clear();
         }
 
-        this.scene.start('LoginScene');
+        await this.startSceneWithDelay(nextScene);
+    }
+
+    async startSceneWithDelay(sceneKey) {
+        await this.wait(this.extraDelayMs);
+        this.cameras.main.fadeOut(220, 0, 0, 0);
+        await this.wait(220);
+        this.scene.start(sceneKey);
+    }
+
+    wait(duration) {
+        return new Promise((resolve) => {
+            this.time.delayedCall(duration, resolve);
+        });
     }
 }

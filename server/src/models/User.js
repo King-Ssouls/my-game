@@ -4,40 +4,40 @@ const userSchema = new mongoose.Schema(
     {
         email: {
             type: String,
-            required: [true, "email required"],
+            required: [true, 'Email обязателен'],
             minlength: 4,
             maxlength: 50,
             unique: true,
             lowercase: true,
             trim: true,
-            match: [/^\S+@\S+\.\S+$/, "Invalid email"],
+            match: [/^\S+@\S+\.\S+$/, 'Введите корректный email']
         },
 
         passwordHash: {
             type: String,
-            required: [true, "hash passwort required "],
-            select: false,
+            required: [true, 'Пароль обязателен'],
+            select: false
         },
 
         nickname: {
             type: String,
-            required: [true, "nickname required"],
+            required: [true, 'Никнейм обязателен'],
             trim: true,
             unique: true,
             minlength: 4,
-            maxlength: 16,
+            maxlength: 16
         },
 
         avatarUrl: {
             type: String,
-            default: null,
+            default: null
         },
-        
+
         role: {
             type: String,
             enum: ['user', 'admin'],
             default: 'user'
-        },
+        }
     },
     {
         timestamps: true,

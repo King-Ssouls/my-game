@@ -1,51 +1,51 @@
 function errorMiddleware(error, req, res, next) {
+    
     let status = error.status || 500;
-    let message = error.message || 'ошибка сервера';
-    let details = undefined;
+    let message = error.message || 'Ошибка сервера';
+    let details;
 
     if (error.name === 'ValidationError') {
         status = 400;
-        message = 'проверка не удалась';
-        details = Object.values(error.errors).map(
-            (item) => item.message
-        );
-    };
+        message = 'Проверка данных не пройдена';
+        details = Object.values(error.errors).map((item) => item.message);
+    }
 
     if (error.code === 11000) {
         status = 409;
 
         const duplicatedField =
-            Object.keys(error.keyPattern || error.keyValue || {})[0] || 'поле';
+            Object.keys(error.keyPattern || error.keyValue || {})[0] || 'Поле';
 
-        message = `${duplicatedField} уже существует`
-    };
+        message = `${duplicatedField} уже существует`;
+    }
 
     if (error.name === 'JsonWebTokenError') {
         status = 401;
-        message = 'недействительный токен';
-    };
+        message = 'Недействительный токен';
+    }
 
     if (error.name === 'TokenExpiredError') {
         status = 401;
-        message = 'срок действия токена истек'
-    };
+        message = 'Срок действия токена истёк';
+    }
 
     if (error.name === 'CastError') {
         status = 400;
-        message = 'неверный идентификатор';
-    };
+        message = 'Неверный идентификатор';
+    }
 
     if (status >= 500) {
         console.error('[ERROR]', error);
-    };
+    }
 
     const responseBody = {
         ok: false,
         message
     };
+
     if (details) {
         responseBody.details = details;
-    };
+    }
 
     res.status(status).json(responseBody);
 }

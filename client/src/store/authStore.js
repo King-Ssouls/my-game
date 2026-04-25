@@ -1,4 +1,4 @@
-import { saveToken, getToken,  removeToken, hasToken } from "../utils/auth.js";
+import { saveToken, getToken, removeToken } from '../utils/auth.js';
 
 
 const state = {
@@ -47,6 +47,9 @@ const authStore = {
     },
     getProgress() {
         return state.progress;
+    },
+    isAuthenticated() {
+        return state.isAuthenticated;
     },
     getIsAuthenticated() {
         return state.isAuthenticated;

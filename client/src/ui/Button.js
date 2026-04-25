@@ -6,7 +6,7 @@ export default class Button {
         variant = 'primary',
         width = '100%',
         onClick = null
-    }) 
+    })
     {
         this.onClick = onClick;
         this.element = document.createElement('button');
@@ -18,7 +18,7 @@ export default class Button {
         this.element.style.border = 'none';
         this.element.style.fontSize = '15px';
         this.element.style.fontWeight = '700';
-        this.element.style.cursor = 'pointer';
+        this.element.style.fontFamily = 'Arial, sans-serif';
 
         const variants = {
             primary: {
@@ -39,18 +39,6 @@ export default class Button {
 
         this.element.style.background = palette.background;
         this.element.style.color = palette.color;
-
-        this.element.addEventListener('mouseenter', () => {
-        if (!this.element.disabled) {
-            this.element.style.transform = 'translateY(-1px)';
-            this.element.style.opacity = '0.95';
-        }
-        });
-
-        this.element.addEventListener('mouseleave', () => {
-        this.element.style.transform = 'translateY(0)';
-        this.element.style.opacity = '1';
-        });
 
         this.handleClick = (event) => {
         if (typeof this.onClick === 'function') {
