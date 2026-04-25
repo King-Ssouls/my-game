@@ -10,6 +10,7 @@ export default class MenuScene extends Phaser.Scene {
 
         this.panel = null;
         this.notification = null;
+        this.playButton = null;
         this.levelsButton = null;
         this.profileButton = null;
         this.logoutButton = null;
@@ -63,9 +64,20 @@ export default class MenuScene extends Phaser.Scene {
 
         this.panel.appendChild(buttons);
 
+        this.playButton = new Button({
+            container: buttons,
+            text: 'Играть',
+            variant: 'primary',
+            fontFamily: '"Press Start 2P", sans-serif',
+            fontSize: '12px',
+            onClick: () => {
+                this.scene.start('GameScene');
+            }
+        });
+
         this.levelsButton = new Button({
             container: buttons,
-            text: 'Выбор уровней',
+            text: 'Выбор карт',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -94,7 +106,7 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     handleOpenLevels() {
-        this.notification.show('Экран  уровней  следующий этап ', 'info');
+        this.notification.show('Экран выбора карт следующий этап', 'info');
     }
 
     handleOpenProfile() {
@@ -108,6 +120,11 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     cleanup() {
+        if (this.playButton) {
+            this.playButton.destroy();
+            this.playButton = null;
+        }
+
         if (this.levelsButton) {
             this.levelsButton.destroy();
             this.levelsButton = null;
