@@ -24,7 +24,7 @@ export default class LevelSelectScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#0b1220');
 
         this.add
-            .text(width / 2, 72, '\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0440\u0442\u044b', {
+            .text(width / 2, 72, 'Выбор карты', {
                 fontFamily: 'Arial',
                 fontSize: '42px',
                 color: '#ffffff',
@@ -33,7 +33,7 @@ export default class LevelSelectScene extends Phaser.Scene {
             .setOrigin(0.5);
 
         this.add
-            .text(width / 2, 122, '\u0412\u0441\u0435 10 \u0443\u0440\u043e\u0432\u043d\u0435\u0439 \u0441\u0435\u0439\u0447\u0430\u0441 \u043e\u0442\u043a\u0440\u044b\u0442\u044b', {
+            .text(width / 2, 122, 'Все 10 уровней сейчас открыты', {
                 fontFamily: 'Arial',
                 fontSize: '18px',
                 color: '#9fb3c8'
@@ -87,7 +87,7 @@ export default class LevelSelectScene extends Phaser.Scene {
         const { width, height } = this.scale;
 
         this.backButton = this.add
-            .text(width / 2, height - 42, '\u2190 \u041d\u0430\u0437\u0430\u0434 \u0432 \u043c\u0435\u043d\u044e', {
+            .text(width / 2, height - 42, '← Назад в меню', {
                 fontFamily: 'Arial',
                 fontSize: '22px',
                 color: '#38bdf8',
