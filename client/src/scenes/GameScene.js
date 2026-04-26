@@ -48,7 +48,7 @@ export default class GameScene extends Phaser.Scene {
         this.worldHeight = 720;
     }
 
-    init() {
+    init(data) {
         this.player = null;
         this.platforms = null;
         this.finish = null;
@@ -79,6 +79,8 @@ export default class GameScene extends Phaser.Scene {
         this.deathPanel = null;
         this.deathBackdrop = null;
         this.resultBanner = null;
+
+        this.levelNumber = data?.levelNumber || 1;
     }
 
     preload() {

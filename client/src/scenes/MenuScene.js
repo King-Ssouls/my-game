@@ -29,7 +29,6 @@ export default class MenuScene extends Phaser.Scene {
         addBrandTitle(this);
 
         this.notification = new Notification();
-
         this.createPanel();
 
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
@@ -52,16 +51,16 @@ export default class MenuScene extends Phaser.Scene {
         title.style.color = '#f6f1d1';
         title.style.fontSize = '18px';
         title.style.fontWeight = '700';
-        title.style.lineHeight = '1.5';
         title.style.marginBottom = '10px';
-        title.textContent = 'Главное меню';
+        title.textContent = '\u0413\u043b\u0430\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e';
 
         const subtitle = document.createElement('div');
-        subtitle.style.color = 'rgba(226, 239, 217, 0.78)';
-        subtitle.style.fontSize = '11px';
+        subtitle.style.color = 'rgba(226, 239, 217, 0.82)';
+        subtitle.style.fontSize = '12px';
         subtitle.style.lineHeight = '1.6';
-        subtitle.style.marginBottom = '22px';
-        subtitle.textContent = 'Для теста можно сразу запустить уровень кнопкой "Играть".';
+        subtitle.style.marginBottom = '20px';
+        subtitle.textContent =
+            '\u0418\u0433\u0440\u0430\u0442\u044c \u0441\u0440\u0430\u0437\u0443 \u0437\u0430\u043f\u0443\u0441\u043a\u0430\u0435\u0442 \u0443\u0440\u043e\u0432\u0435\u043d\u044c, \u0430 \u043a\u043d\u043e\u043f\u043a\u0430 "\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0440\u0442" \u043e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u043c\u0435\u043d\u044e \u0443\u0440\u043e\u0432\u043d\u0435\u0439.';
 
         this.panel.appendChild(title);
         this.panel.appendChild(subtitle);
@@ -75,7 +74,7 @@ export default class MenuScene extends Phaser.Scene {
 
         this.playButton = new Button({
             container: buttons,
-            text: 'Играть',
+            text: '\u0418\u0433\u0440\u0430\u0442\u044c',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -84,7 +83,7 @@ export default class MenuScene extends Phaser.Scene {
 
         this.levelsButton = new Button({
             container: buttons,
-            text: 'Выбор карт',
+            text: '\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0440\u0442',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -92,18 +91,17 @@ export default class MenuScene extends Phaser.Scene {
         });
 
         this.profileButton = new Button({
-        container: buttons,
-        text: 'Профиль',
-        variant: 'primary',
-        fontFamily: '"Press Start 2P", sans-serif',
-        fontSize: '12px',
-        onClick: () => {
-            this.scene.start('ProfileScene');
-        }
-    });
+            container: buttons,
+            text: '\u041f\u0440\u043e\u0444\u0438\u043b\u044c',
+            variant: 'primary',
+            fontFamily: '"Press Start 2P", sans-serif',
+            fontSize: '12px',
+            onClick: () => this.scene.start('ProfileScene')
+        });
+
         this.logoutButton = new Button({
             container: buttons,
-            text: 'Выйти',
+            text: '\u0412\u044b\u0439\u0442\u0438',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -114,20 +112,18 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     handlePlay() {
-        this.scene.start('GameScene');
+        this.scene.start('GameScene', {
+            levelNumber: 1
+        });
     }
 
     handleOpenLevels() {
-        this.notification.show('Экран выбора карт будет следующим этапом.', 'info');
-    }
-
-    handleOpenProfile() {
-        this.notification.show('Экран профиля будет следующим этапом.', 'info');
+        this.scene.start('LevelSelectScene');
     }
 
     handleLogout() {
         authStore.clear();
-        this.notification.show('Вы вернулись в меню входа.', 'info');
+        this.notification.show('\u0412\u044b \u0432\u0435\u0440\u043d\u0443\u043b\u0438\u0441\u044c \u0432 \u043c\u0435\u043d\u044e \u0432\u0445\u043e\u0434\u0430.', 'info');
         this.scene.start('LoginScene');
     }
 
@@ -140,6 +136,11 @@ export default class MenuScene extends Phaser.Scene {
         if (this.levelsButton) {
             this.levelsButton.destroy();
             this.levelsButton = null;
+        }
+
+        if (this.profileButton) {
+            this.profileButton.destroy();
+            this.profileButton = null;
         }
 
         if (this.logoutButton) {

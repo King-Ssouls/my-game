@@ -5,6 +5,7 @@ import LoginScene from '../scenes/LoginScene.js';
 import MenuScene from '../scenes/MenuScene.js';
 import GameScene from '../scenes/GameScene.js';
 import ProfileScene from '../scenes/ProfileScene.js';
+import LevelSelectScene from '../scenes/LevelSelectScene.js';
 
 const gameConfig = {
     type: Phaser.AUTO,
@@ -47,7 +48,8 @@ const gameConfig = {
         LoginScene,
         MenuScene,
         GameScene,
-        ProfileScene
+        ProfileScene,
+        LevelSelectScene
     ]
 };
 
