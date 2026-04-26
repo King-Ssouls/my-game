@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const env = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
 const errorMiddleware = require('./middleware/error.middleware');
+const profileRoutes = require('./routes/profile.routes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(express.urlencoded(
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/', (req, res) => {
     res.json({
