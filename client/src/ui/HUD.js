@@ -1,73 +1,93 @@
 export default class HUD {
     constructor(scene) {
         this.scene = scene;
+        this.mountNode = document.getElementById('app') || document.body;
+        this.root = document.createElement('div');
+        this.root.style.position = 'absolute';
+        this.root.style.inset = '0';
+        this.root.style.pointerEvents = 'none';
+        this.root.style.zIndex = '5000';
+        this.root.style.fontFamily = 'Arial, sans-serif';
+        this.root.style.display = 'block';
+        this.root.style.visibility = 'visible';
+        this.root.style.opacity = '1';
 
-        this.healthText = scene.add
-            .text(16, 16, 'HP: 0/0', {
-                fontFamily: 'Arial',
-                fontSize: '24px',
-                color: '#ffffff',
-                backgroundColor: '#0f172a',
-                padding: { x: 10, y: 6 }
-            })
-            .setScrollFactor(0)
-            .setDepth(100);
+        this.panel = document.createElement('div');
+        this.panel.style.position = 'absolute';
+        this.panel.style.left = '18px';
+        this.panel.style.top = '18px';
+        this.panel.style.display = 'grid';
+        this.panel.style.gap = '10px';
 
-        this.scoreText = scene.add
-            .text(16, 58, 'Очки: 0', {
-                fontFamily: 'Arial',
-                fontSize: '22px',
-                color: '#ffffff',
-                backgroundColor: '#0f172a',
-                padding: { x: 10, y: 6 }
-            })
-            .setScrollFactor(0)
-            .setDepth(100);
+        this.healthText = this.createBadge('HP: 0/0', '24px');
+        this.scoreText = this.createBadge('\u041e\u0447\u043a\u0438: 0', '22px');
+        this.timeText = this.createBadge('\u0412\u0440\u0435\u043c\u044f: 00:00', '22px');
 
-        this.timeText = scene.add
-            .text(16, 98, 'Время: 00:00', {
-                fontFamily: 'Arial',
-                fontSize: '22px',
-                color: '#ffffff',
-                backgroundColor: '#0f172a',
-                padding: { x: 10, y: 6 }
-            })
-            .setScrollFactor(0)
-            .setDepth(100);
+        this.statusText = document.createElement('div');
+        this.statusText.style.position = 'absolute';
+        this.statusText.style.left = '50%';
+        this.statusText.style.top = '18px';
+        this.statusText.style.transform = 'translateX(-50%)';
+        this.statusText.style.padding = '8px 14px';
+        this.statusText.style.borderRadius = '12px';
+        this.statusText.style.background = '#1e293b';
+        this.statusText.style.color = '#ffffff';
+        this.statusText.style.fontSize = '22px';
+        this.statusText.style.fontWeight = '700';
+        this.statusText.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.24)';
+        this.statusText.style.display = 'none';
 
-        this.statusText = scene.add
-            .text(scene.scale.width / 2, 26, '', {
-                fontFamily: 'Arial',
-                fontSize: '22px',
-                color: '#ffffff',
-                backgroundColor: '#1e293b',
-                padding: { x: 12, y: 6 }
-            })
-            .setScrollFactor(0)
-            .setDepth(100)
-            .setOrigin(0.5, 0);
+        this.panel.appendChild(this.healthText);
+        this.panel.appendChild(this.scoreText);
+        this.panel.appendChild(this.timeText);
+
+        this.root.appendChild(this.panel);
+        this.root.appendChild(this.statusText);
+        this.mountNode.appendChild(this.root);
+    }
+
+    createBadge(text, fontSize) {
+        const element = document.createElement('div');
+        element.textContent = text;
+        element.style.padding = '8px 12px';
+        element.style.borderRadius = '12px';
+        element.style.background = '#0f172a';
+        element.style.color = '#ffffff';
+        element.style.fontSize = fontSize;
+        element.style.fontWeight = '700';
+        element.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.2)';
+        element.style.width = 'fit-content';
+        return element;
     }
 
     setHealth(current, max) {
-        this.healthText.setText(`HP: ${current}/${max}`);
+        this.healthText.textContent = `HP: ${current}/${max}`;
     }
 
     setScore(score) {
-        this.scoreText.setText(`Очки: ${score}`);
+        this.scoreText.textContent = `\u041e\u0447\u043a\u0438: ${score}`;
     }
 
     setTime(text) {
-        this.timeText.setText(`Время: ${text}`);
+        this.timeText.textContent = `\u0412\u0440\u0435\u043c\u044f: ${text}`;
     }
 
     setStatus(text) {
-        this.statusText.setText(text || '');
+        const value = text || '';
+        this.statusText.textContent = value;
+        this.statusText.style.display = value ? 'block' : 'none';
     }
 
     destroy() {
-        this.healthText.destroy();
-        this.scoreText.destroy();
-        this.timeText.destroy();
-        this.statusText.destroy();
+        if (this.root) {
+            this.root.remove();
+            this.root = null;
+        }
+
+        this.panel = null;
+        this.healthText = null;
+        this.scoreText = null;
+        this.timeText = null;
+        this.statusText = null;
     }
 }

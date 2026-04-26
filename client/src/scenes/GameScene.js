@@ -23,6 +23,7 @@ import HealthSystem from '../systems/HealthSystem.js';
 
 import HUD from '../ui/HUD.js';
 
+import { getLevelByNumber } from '../data/levels.js';
 import { createLevelTimer } from '../utils/timer.js';
 import { addEnemyScore, calculateScore } from '../utils/score.js';
 import { createPlayerAnimations } from '../animations/playerAnimations.js';
@@ -39,6 +40,8 @@ const PLAYER_TRIM_FRAME = {
 const ENEMY_WALK_FRAME_WIDTHS = [308, 308, 308, 308, 308, 308, 308, 308, 308, 307];
 const ENEMY_HURT_FRAME_WIDTHS = [249, 249];
 const ENEMY_DEATH_FRAME_WIDTHS = [237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 240];
+const CAMERA_ZOOM = 1.5;
+const CAMERA_FOLLOW_OFFSET_Y = 42;
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -46,6 +49,8 @@ export default class GameScene extends Phaser.Scene {
 
         this.worldWidth = 2400;
         this.worldHeight = 720;
+        this.currentLevel = null;
+        this.currentLevelBackgroundKey = null;
     }
 
     init(data) {
@@ -81,6 +86,8 @@ export default class GameScene extends Phaser.Scene {
         this.resultBanner = null;
 
         this.levelNumber = data?.levelNumber || 1;
+        this.currentLevel = getLevelByNumber(this.levelNumber);
+        this.currentLevelBackgroundKey = `level-background-${this.currentLevel.number}`;
     }
 
     preload() {
@@ -95,6 +102,10 @@ export default class GameScene extends Phaser.Scene {
         this.loadImageIfMissing('enemy-sheet', enemyWalkSheet);
         this.loadImageIfMissing('enemy-hurt-sheet', enemyHurtSheet);
         this.loadImageIfMissing('enemy-death-sheet', enemyDeathSheet);
+
+        if (this.currentLevel?.background) {
+            this.loadImageIfMissing(this.currentLevelBackgroundKey, this.currentLevel.background);
+        }
     }
 
     create() {
@@ -107,7 +118,8 @@ export default class GameScene extends Phaser.Scene {
         this.setupSceneLifecycle();
 
         this.cameras.main.setBackgroundColor('#7dd3fc');
-        this.cameras.main.roundPixels = true;
+        this.cameras.main.roundPixels = false;
+        this.cameras.main.setZoom(CAMERA_ZOOM);
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
@@ -116,7 +128,8 @@ export default class GameScene extends Phaser.Scene {
         this.createPlatforms();
         this.createControls();
 
-        this.player = new Player(this, 120, 600);
+        const playerSpawn = this.currentLevel?.playerSpawn || { x: 120, y: 600 };
+        this.player = new Player(this, playerSpawn.x, playerSpawn.y);
         this.physics.add.collider(this.player, this.platforms);
 
         this.healthSystem = new HealthSystem(this);
@@ -150,7 +163,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.updateHud();
 
-        this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
+        this.cameras.main.startFollow(this.player, false, 0.18, 0.18, 0, CAMERA_FOLLOW_OFFSET_Y);
     }
 
     update() {
@@ -398,6 +411,20 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createBackground() {
+        if (this.currentLevelBackgroundKey && this.textures.exists(this.currentLevelBackgroundKey)) {
+            this.add
+                .image(0, 0, this.currentLevelBackgroundKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(this.worldWidth, this.worldHeight)
+                .setDepth(-20);
+
+            this.add
+                .rectangle(this.worldWidth / 2, this.worldHeight / 2, this.worldWidth, this.worldHeight, 0x0f172a, 0.1)
+                .setDepth(-19);
+
+            return;
+        }
+
         this.add.rectangle(this.worldWidth / 2, 140, this.worldWidth, 280, 0x8be9fd).setScrollFactor(0.2);
         this.add.rectangle(this.worldWidth / 2, 380, this.worldWidth, 320, 0x93c5fd).setScrollFactor(0.35);
 
@@ -411,20 +438,55 @@ export default class GameScene extends Phaser.Scene {
     createPlatforms() {
         this.platforms = this.physics.add.staticGroup();
 
-        for (let x = 32; x < this.worldWidth; x += 64) {
-            this.platforms.create(x, 704, 'ground');
-        }
-
-        const platformCoords = [
-            { x: 340, y: 600 },
-            { x: 520, y: 520 },
-            { x: 760, y: 460 },
-            { x: 980, y: 610 },
-            { x: 1260, y: 560 },
-            { x: 1480, y: 500 },
-            { x: 1710, y: 450 },
-            { x: 1980, y: 560 }
-        ];
+        const platformCoords = this.currentLevel?.platforms?.length
+            ? this.currentLevel.platforms
+            : [
+                { x: 32, y: 704 },
+                { x: 96, y: 704 },
+                { x: 160, y: 704 },
+                { x: 224, y: 704 },
+                { x: 288, y: 704 },
+                { x: 352, y: 704 },
+                { x: 416, y: 704 },
+                { x: 480, y: 704 },
+                { x: 544, y: 704 },
+                { x: 608, y: 704 },
+                { x: 672, y: 704 },
+                { x: 736, y: 704 },
+                { x: 800, y: 704 },
+                { x: 864, y: 704 },
+                { x: 928, y: 704 },
+                { x: 992, y: 704 },
+                { x: 1056, y: 704 },
+                { x: 1120, y: 704 },
+                { x: 1184, y: 704 },
+                { x: 1248, y: 704 },
+                { x: 1312, y: 704 },
+                { x: 1376, y: 704 },
+                { x: 1440, y: 704 },
+                { x: 1504, y: 704 },
+                { x: 1568, y: 704 },
+                { x: 1632, y: 704 },
+                { x: 1696, y: 704 },
+                { x: 1760, y: 704 },
+                { x: 1824, y: 704 },
+                { x: 1888, y: 704 },
+                { x: 1952, y: 704 },
+                { x: 2016, y: 704 },
+                { x: 2080, y: 704 },
+                { x: 2144, y: 704 },
+                { x: 2208, y: 704 },
+                { x: 2272, y: 704 },
+                { x: 2336, y: 704 },
+                { x: 340, y: 600 },
+                { x: 520, y: 520 },
+                { x: 760, y: 460 },
+                { x: 980, y: 610 },
+                { x: 1260, y: 560 },
+                { x: 1480, y: 500 },
+                { x: 1710, y: 450 },
+                { x: 1980, y: 560 }
+            ];
 
         platformCoords.forEach((item) => {
             this.platforms.create(item.x, item.y, 'ground');
@@ -432,32 +494,34 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createEnemies() {
-        const enemyConfigs = [
-            {
-                x: 640,
-                y: 420,
-                patrolDistance: 110,
-                speed: 64,
-                damage: 1,
-                maxHealth: 3
-            },
-            {
-                x: 1340,
-                y: 520,
-                patrolDistance: 120,
-                speed: 68,
-                damage: 1,
-                maxHealth: 3
-            },
-            {
-                x: 1840,
-                y: 410,
-                patrolDistance: 100,
-                speed: 72,
-                damage: 1,
-                maxHealth: 3
-            }
-        ];
+        const enemyConfigs = this.currentLevel?.enemies?.length
+            ? this.currentLevel.enemies
+            : [
+                {
+                    x: 640,
+                    y: 420,
+                    patrolDistance: 110,
+                    speed: 64,
+                    damage: 1,
+                    maxHealth: 3
+                },
+                {
+                    x: 1340,
+                    y: 520,
+                    patrolDistance: 120,
+                    speed: 68,
+                    damage: 1,
+                    maxHealth: 3
+                },
+                {
+                    x: 1840,
+                    y: 410,
+                    patrolDistance: 100,
+                    speed: 72,
+                    damage: 1,
+                    maxHealth: 3
+                }
+            ];
 
         enemyConfigs.forEach((config) => {
             const enemy = new WalkingEnemy(this, config.x, config.y, config);
@@ -472,14 +536,16 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createTraps() {
-        const spikes = [
-            { x: 880, y: 690 },
-            { x: 910, y: 690 },
-            { x: 940, y: 690 },
-            { x: 1580, y: 690 },
-            { x: 1610, y: 690 },
-            { x: 1640, y: 690 }
-        ];
+        const spikes = this.currentLevel?.traps?.length
+            ? this.currentLevel.traps
+            : [
+                { x: 880, y: 690 },
+                { x: 910, y: 690 },
+                { x: 940, y: 690 },
+                { x: 1580, y: 690 },
+                { x: 1610, y: 690 },
+                { x: 1640, y: 690 }
+            ];
 
         spikes.forEach((item) => {
             const trap = new SpikeTrap(this, item.x, item.y);
@@ -488,7 +554,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createFinish() {
-        this.finish = new Finish(this, 2260, 690);
+        const finishPosition = this.currentLevel?.finish || { x: 2260, y: 690 };
+        this.finish = new Finish(this, finishPosition.x, finishPosition.y);
     }
 
     handleEnemyKilled(enemy) {
@@ -745,7 +812,9 @@ export default class GameScene extends Phaser.Scene {
     restartLevel() {
         this.input.keyboard?.resetKeys();
         this.closeDeathMenu();
-        this.scene.restart();
+        this.scene.restart({
+            levelNumber: this.levelNumber
+        });
     }
 
     returnToMenu() {
@@ -785,21 +854,36 @@ export default class GameScene extends Phaser.Scene {
             graphics.destroy();
         }
 
-        if (!this.textures.exists('finish')) {
-            const graphics = this.add.graphics();
-            graphics.fillStyle(0xe5e7eb, 1);
-            graphics.fillRect(2, 0, 8, 64);
-            graphics.fillStyle(0x0f172a, 1);
-            graphics.fillRect(10, 0, 20, 12);
-            graphics.fillStyle(0x22d3ee, 1);
-            graphics.fillRect(10, 12, 20, 12);
-            graphics.fillStyle(0x0f172a, 1);
-            graphics.fillRect(10, 24, 20, 12);
-            graphics.fillStyle(0x22d3ee, 1);
-            graphics.fillRect(10, 36, 20, 12);
-            graphics.generateTexture('finish', 32, 64);
-            graphics.destroy();
+        if (this.textures.exists('finish')) {
+            this.textures.remove('finish');
         }
+
+        const finishGraphics = this.add.graphics();
+        finishGraphics.fillStyle(0xe5e7eb, 1);
+        finishGraphics.fillRect(2, 0, 8, 64);
+
+        finishGraphics.fillStyle(0x000000, 1);
+        finishGraphics.fillRect(10, 0, 10, 12);
+        finishGraphics.fillStyle(0xffffff, 1);
+        finishGraphics.fillRect(20, 0, 10, 12);
+
+        finishGraphics.fillStyle(0xffffff, 1);
+        finishGraphics.fillRect(10, 12, 10, 12);
+        finishGraphics.fillStyle(0x000000, 1);
+        finishGraphics.fillRect(20, 12, 10, 12);
+
+        finishGraphics.fillStyle(0x000000, 1);
+        finishGraphics.fillRect(10, 24, 10, 12);
+        finishGraphics.fillStyle(0xffffff, 1);
+        finishGraphics.fillRect(20, 24, 10, 12);
+
+        finishGraphics.fillStyle(0xffffff, 1);
+        finishGraphics.fillRect(10, 36, 10, 12);
+        finishGraphics.fillStyle(0x000000, 1);
+        finishGraphics.fillRect(20, 36, 10, 12);
+
+        finishGraphics.generateTexture('finish', 32, 64);
+        finishGraphics.destroy();
 
         if (!this.textures.exists('spike')) {
             const graphics = this.add.graphics();

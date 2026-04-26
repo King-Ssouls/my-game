@@ -48,37 +48,38 @@ export default class LevelCard extends Phaser.GameObjects.Container {
 
 		this.levelText = scene.add.text(-this.cardWidth / 2 + 42, 0, String(this.levelNumber), {
 			fontFamily: 'Arial',
-			fontSize: '24px',
+			fontSize: '22px',
 			color: '#ffffff',
 			fontStyle: 'bold'
 		});
 		this.levelText.setOrigin(0.5);
 
-		this.titleText = scene.add.text(-this.cardWidth / 2 + 84, -14, this.levelTitle, {
+		this.titleText = scene.add.text(-this.cardWidth / 2 + 84, -20, this.levelTitle, {
 			fontFamily: 'Arial',
-			fontSize: '20px',
+			fontSize: '18px',
 			color: '#ffffff',
-			fontStyle: 'bold'
+			fontStyle: 'bold',
+			wordWrap: { width: this.cardWidth - 118, useAdvancedWrap: true }
 		});
-		this.titleText.setOrigin(0, 0.5);
+		this.titleText.setOrigin(0, 0);
 
 		this.descriptionText = scene.add.text(
 			-this.cardWidth / 2 + 84,
-			14,
+			24,
 			this.levelDescription,
 			{
 				fontFamily: 'Arial',
-				fontSize: '13px',
-				color: '#94a3b8'
+				fontSize: '10px',
+				color: '#94a3b8',
+				wordWrap: { width: this.cardWidth - 118, useAdvancedWrap: true }
 			}
 		);
-		this.descriptionText.setOrigin(0, 0.5);
+		this.descriptionText.setOrigin(0, 0);
 
 		this.add([
 			this.background,
 			this.numberBadge,
-			this.levelText
-			,
+			this.levelText,
 			this.titleText,
 			this.descriptionText
 		]);

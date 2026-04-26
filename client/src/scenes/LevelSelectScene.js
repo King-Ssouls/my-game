@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import levels from '../data/levels.js';
 import LevelCard from '../ui/LevelCard.js';
 
-const LEVEL_CARD_WIDTH = 320;
-const LEVEL_CARD_HEIGHT = 118;
+const LEVEL_CARD_WIDTH = 336;
+const LEVEL_CARD_HEIGHT = 126;
 const LEVEL_COLUMNS = 5;
 const LEVEL_ROWS = 2;
 const LEVEL_COLUMN_GAP = 24;
@@ -74,7 +74,7 @@ export default class LevelSelectScene extends Phaser.Scene {
                 height: LEVEL_CARD_HEIGHT,
                 onSelect: (selectedLevel) => {
                     this.scene.start('GameScene', {
-                        levelNumber: selectedLevel.levelNumber
+                        levelNumber: selectedLevel.levelNumber ?? selectedLevel.number ?? 1
                     });
                 }
             });
