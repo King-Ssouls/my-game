@@ -85,6 +85,7 @@ export default class ProfileScene extends Phaser.Scene {
         const statsTitle = document.createElement('div');
         statsTitle.textContent = 'Статистика';
         statsTitle.style.color = '#ffffff';
+        statsTitle.style.fontFamily = 'Arial, sans-serif';
         statsTitle.style.fontSize = '18px';
         statsTitle.style.fontWeight = '700';
         statsTitle.style.marginTop = '8px';
@@ -96,8 +97,8 @@ export default class ProfileScene extends Phaser.Scene {
         this.statsBlock.style.borderRadius = '14px';
         this.statsBlock.style.padding = '14px';
         this.statsBlock.style.color = '#d8e6f3';
+        this.statsBlock.style.fontFamily = 'Arial, sans-serif';
         this.statsBlock.style.fontSize = '14px';
-        this.statsBlock.style.lineHeight = '1.7';
         this.statsBlock.style.marginBottom = '16px';
 
         this.root.appendChild(statsTitle);

@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 
 const ENEMY_SCALE = 0.34;
+const DEFAULT_TURN_SMOOTHING = 0.16;
+const DEFAULT_TURN_BUFFER = 10;
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, texture = 'enemy-sheet', config = {}) {
@@ -22,6 +24,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.speed = config.speed ?? 60;
         this.patrolDistance = config.patrolDistance ?? 100;
         this.damage = config.damage ?? 1;
+        this.turnSmoothing = config.turnSmoothing ?? DEFAULT_TURN_SMOOTHING;
+        this.turnBuffer = config.turnBuffer ?? DEFAULT_TURN_BUFFER;
 
         this.maxHealth = config.maxHealth ?? 2;
         this.health = this.maxHealth;
@@ -38,13 +42,28 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
             return;
         }
 
-        this.setVelocityX(this.speed * this.direction);
+        const leftBound = this.startX - this.patrolDistance;
+        const rightBound = this.startX + this.patrolDistance;
 
-        if (this.x <= this.startX - this.patrolDistance) {
+        if (this.x <= leftBound) {
             this.direction = 1;
-        } else if (this.x >= this.startX + this.patrolDistance) {
+        } else if (this.x >= rightBound) {
             this.direction = -1;
         }
+
+        const targetVelocityX = this.speed * this.direction;
+        const currentVelocityX = this.body?.velocity?.x ?? 0;
+        let nextVelocityX = Phaser.Math.Linear(
+            currentVelocityX,
+            targetVelocityX,
+            this.turnSmoothing
+        );
+
+        if (Math.abs(targetVelocityX - nextVelocityX) < this.turnBuffer) {
+            nextVelocityX = targetVelocityX;
+        }
+
+        this.setVelocityX(nextVelocityX);
 
         this.setFlipX(this.direction < 0);
 

@@ -435,7 +435,7 @@ export default class GameScene extends Phaser.Scene {
                 x: 640,
                 y: 420,
                 patrolDistance: 110,
-                speed: 72,
+                speed: 64,
                 damage: 1,
                 maxHealth: 3
             },
@@ -443,7 +443,7 @@ export default class GameScene extends Phaser.Scene {
                 x: 1340,
                 y: 520,
                 patrolDistance: 120,
-                speed: 78,
+                speed: 68,
                 damage: 1,
                 maxHealth: 3
             },
@@ -451,7 +451,7 @@ export default class GameScene extends Phaser.Scene {
                 x: 1840,
                 y: 410,
                 patrolDistance: 100,
-                speed: 84,
+                speed: 72,
                 damage: 1,
                 maxHealth: 3
             }
