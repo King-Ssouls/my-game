@@ -12,15 +12,15 @@ function destroyGame() {
 }
 
 function startGame() {
-    if (window.__MY_GAME__) {
-        return;
-    }
-
+    destroyGame();
     window.__MY_GAME__ = new Phaser.Game(gameConfig);
 }
 
 if (import.meta.hot) {
-    import.meta.hot.accept();
+    import.meta.hot.accept(() => {
+        startGame();
+    });
+
     import.meta.hot.dispose(() => {
         destroyGame();
     });

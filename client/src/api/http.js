@@ -73,7 +73,10 @@ async function request(path, method = 'GET', body = null) {
         const details = Array.isArray(data?.details) ? data.details.join(', ') : '';
         const finalMessage = details ? `${baseMessage}: ${details}` : baseMessage;
 
-        throw new Error(finalMessage);
+        const error = new Error(finalMessage);
+        error.status = response.status;
+        error.details = data?.details;
+        throw error;
     }
 
     return data;
@@ -86,6 +89,10 @@ const http = {
 
     post(path, body) {
         return request(path, 'POST', body);
+    },
+
+    patch(path, body) {
+        return request(path, 'PATCH', body);
     }
 };
 

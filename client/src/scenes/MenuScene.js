@@ -92,14 +92,15 @@ export default class MenuScene extends Phaser.Scene {
         });
 
         this.profileButton = new Button({
-            container: buttons,
-            text: 'Профиль',
-            variant: 'primary',
-            fontFamily: '"Press Start 2P", sans-serif',
-            fontSize: '12px',
-            onClick: () => this.handleOpenProfile()
-        });
-
+        container: buttons,
+        text: 'Профиль',
+        variant: 'primary',
+        fontFamily: '"Press Start 2P", sans-serif',
+        fontSize: '12px',
+        onClick: () => {
+            this.scene.start('ProfileScene');
+        }
+    });
         this.logoutButton = new Button({
             container: buttons,
             text: 'Выйти',
@@ -139,11 +140,6 @@ export default class MenuScene extends Phaser.Scene {
         if (this.levelsButton) {
             this.levelsButton.destroy();
             this.levelsButton = null;
-        }
-
-        if (this.profileButton) {
-            this.profileButton.destroy();
-            this.profileButton = null;
         }
 
         if (this.logoutButton) {

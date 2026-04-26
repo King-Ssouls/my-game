@@ -4,32 +4,7 @@ import PreloadScene from '../scenes/PreloadScene.js';
 import LoginScene from '../scenes/LoginScene.js';
 import MenuScene from '../scenes/MenuScene.js';
 import GameScene from '../scenes/GameScene.js';
-
-const sceneRegistry = {
-    BootScene,
-    PreloadScene,
-    LoginScene,
-    MenuScene,
-    GameScene
-};
-
-const defaultSceneOrder = [
-    'BootScene',
-    'PreloadScene',
-    'LoginScene',
-    'MenuScene',
-    'GameScene'
-];
-
-const devSceneOrder = [
-    'MenuScene',
-    'GameScene',
-    'BootScene',
-    'PreloadScene',
-    'LoginScene'
-];
-
-const sceneOrder = import.meta.env.DEV ? devSceneOrder : defaultSceneOrder;
+import ProfileScene from '../scenes/ProfileScene.js';
 
 const gameConfig = {
     type: Phaser.AUTO,
@@ -66,7 +41,14 @@ const gameConfig = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    scene: sceneOrder.map((sceneKey) => sceneRegistry[sceneKey])
+    scene: [
+        BootScene,
+        PreloadScene,
+        LoginScene,
+        MenuScene,
+        GameScene,
+        ProfileScene
+    ]
 };
 
 export default gameConfig;
