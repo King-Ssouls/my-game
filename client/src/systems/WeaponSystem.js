@@ -1,14 +1,12 @@
 import StaffStrike from '../entities/StaffStrike.js';
 
-
 export default class WeaponSystem {
     constructor(scene, player) {
-
         this.scene = scene;
         this.player = player;
 
-        this.cooldown = 320;
-        this.attackDuration = 120;
+        this.cooldown = 180;
+        this.attackDuration = 100;
         this.lastAttack = -Infinity;
 
         this.hitboxes = scene.physics.add.group({
@@ -26,6 +24,10 @@ export default class WeaponSystem {
             !this.player.isAttacking &&
             now - this.lastAttack >= this.cooldown
         );
+    }
+
+    hasActiveHitbox() {
+        return this.hitboxes.countActive(true) > 0;
     }
 
     attack() {

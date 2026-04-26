@@ -1,18 +1,20 @@
 import Phaser from 'phaser';
 
+const ENEMY_SCALE = 0.34;
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, texture = 'enemy-sheet', config = {}) {
-
         super(scene, x, y, texture, '0');
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
+        this.setScale(ENEMY_SCALE);
         this.setCollideWorldBounds(true);
 
-        this.body.setSize(22, 28);
-        this.body.setOffset(5, 4);
+        this.body.setSize(68, 108);
+        this.body.setOffset(118, 72);
+        this.body.entityRef = this;
 
         this.startX = x;
         this.direction = -1;
@@ -25,13 +27,13 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.health = this.maxHealth;
         this.isDead = false;
         this.isInvulnerable = false;
-        this.invulnerabilityDuration = 150;
+        this.invulnerabilityDuration = 300;
+        this.deathHandled = false;
 
         this.play('enemy-walk');
     }
 
     update() {
-        
         if (this.isDead) {
             return;
         }
@@ -52,35 +54,37 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     onDamaged(force = {}) {
-
         if (this.isDead) {
             return;
         }
 
-        this.play('enemy-hurt', true);
+        if (this.anims.currentAnim?.key !== 'enemy-walk') {
+            this.play('enemy-walk', true);
+        }
 
         if (this.body) {
             this.body.setVelocity(
-                force.knockbackX ?? (this.direction === 1 ? -140 : 140),
-                force.knockbackY ?? -120
+                force.knockbackX ?? (this.direction === 1 ? -70 : 70),
+                force.knockbackY ?? 0
             );
         }
     }
 
     onDeath() {
-
-        if (this.isDead) {
+        if (this.deathHandled) {
             return;
         }
 
+        this.deathHandled = true;
         this.isDead = true;
+        this.setVelocity(0, 0);
         this.play('enemy-death', true);
 
         if (this.body) {
             this.body.enable = false;
         }
 
-        this.scene.time.delayedCall(320, () => {
+        this.scene.time.delayedCall(850, () => {
             if (this.active) {
                 this.destroy();
             }

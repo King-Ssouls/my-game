@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import authStore from '../store/authStore.js';
 import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
+import forestImage from '../assets/images/backgrounds/forest.png';
 import { addBrandTitle, addMenuBackdrop, applyMenuPanelStyles } from '../utils/menuTheme.js';
 
 export default class MenuScene extends Phaser.Scene {
@@ -14,6 +15,12 @@ export default class MenuScene extends Phaser.Scene {
         this.levelsButton = null;
         this.profileButton = null;
         this.logoutButton = null;
+    }
+
+    preload() {
+        if (!this.textures.exists('menuForest')) {
+            this.load.image('menuForest', forestImage);
+        }
     }
 
     create() {
@@ -47,12 +54,14 @@ export default class MenuScene extends Phaser.Scene {
         title.style.fontWeight = '700';
         title.style.lineHeight = '1.5';
         title.style.marginBottom = '10px';
+        title.textContent = 'Главное меню';
 
         const subtitle = document.createElement('div');
         subtitle.style.color = 'rgba(226, 239, 217, 0.78)';
         subtitle.style.fontSize = '11px';
         subtitle.style.lineHeight = '1.6';
         subtitle.style.marginBottom = '22px';
+        subtitle.textContent = 'Для теста можно сразу запустить уровень кнопкой "Играть".';
 
         this.panel.appendChild(title);
         this.panel.appendChild(subtitle);
@@ -70,9 +79,7 @@ export default class MenuScene extends Phaser.Scene {
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
-            onClick: () => {
-                this.scene.start('GameScene');
-            }
+            onClick: () => this.handlePlay()
         });
 
         this.levelsButton = new Button({
@@ -105,17 +112,21 @@ export default class MenuScene extends Phaser.Scene {
         document.body.appendChild(this.panel);
     }
 
+    handlePlay() {
+        this.scene.start('GameScene');
+    }
+
     handleOpenLevels() {
-        this.notification.show('Экран выбора карт следующий этап', 'info');
+        this.notification.show('Экран выбора карт будет следующим этапом.', 'info');
     }
 
     handleOpenProfile() {
-        this.notification.show('Экран профиля  следующий этап', 'info');
+        this.notification.show('Экран профиля будет следующим этапом.', 'info');
     }
 
     handleLogout() {
         authStore.clear();
-        this.notification.show('Вы вернулись в меню входа', 'info');
+        this.notification.show('Вы вернулись в меню входа.', 'info');
         this.scene.start('LoginScene');
     }
 

@@ -1,46 +1,57 @@
-const PLAYER_TEXTURE_KEY = 'player-sheet';
-
 const PLAYER_ANIMATIONS = [
     {
         key: 'player-idle',
-        frames: ['0'],
-        frameRate: 1,
+        textureKey: 'player-sheet',
+        frames: ['0', '1', '2', '3', '4', '5', '6', '7'],
+        frameRate: 7,
         repeat: -1
     },
     {
         key: 'player-run',
-        frames: ['1', '2'],
-        frameRate: 8,
+        textureKey: 'player-run-sheet',
+        frames: ['0', '1', '2', '3', '4', '5', '6', '7'],
+        frameRate: 7,
         repeat: -1
     },
     {
         key: 'player-jump',
-        frames: ['3'],
-        frameRate: 1,
+        textureKey: 'player-jump-sheet',
+        frames: ['0', '1'],
+        frameRate: 8,
+        repeat: -1
+    },
+    {
+        key: 'player-fall',
+        textureKey: 'player-fall-sheet',
+        frames: ['0', '1'],
+        frameRate: 8,
         repeat: -1
     },
     {
         key: 'player-attack',
-        frames: ['4', '0'],
-        frameRate: 10,
+        textureKey: 'player-attack-sheet',
+        frames: ['0', '1', '2', '3', '4', '5', '6', '7'],
+        frameRate: 7,
         repeat: 0
     },
     {
         key: 'player-hurt',
-        frames: ['5'],
-        frameRate: 1,
+        textureKey: 'player-hurt-sheet',
+        frames: ['0', '1', '2'],
+        frameRate: 10,
         repeat: 0
     },
     {
         key: 'player-death',
-        frames: ['5'],
-        frameRate: 1,
+        textureKey: 'player-death-sheet',
+        frames: ['0', '1', '2', '3', '4', '5', '6'],
+        frameRate: 6,
         repeat: 0
     }
 ];
 
-function createFrames(textureKey, frameNames) {
-    return frameNames.map((frame) => ({
+function createFrames(textureKey, frameIndexes) {
+    return frameIndexes.map((frame) => ({
         key: textureKey,
         frame
     }));
@@ -53,7 +64,7 @@ function createAnimationIfMissing(scene, animation) {
 
     scene.anims.create({
         key: animation.key,
-        frames: createFrames(PLAYER_TEXTURE_KEY, animation.frames),
+        frames: createFrames(animation.textureKey, animation.frames),
         frameRate: animation.frameRate,
         repeat: animation.repeat
     });

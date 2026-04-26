@@ -4,41 +4,60 @@ export default class HealthSystem {
     }
 
     bind(entity, config = {}) {
+        let maxHealth;
 
         if (config.maxHealth !== undefined && config.maxHealth !== null) {
-            entity.maxHealth = config.maxHealth;
-        }else if (entity.maxHealth === undefined || entity.maxHealth === null) {
-            entity.maxHealth = 5;
+            maxHealth = config.maxHealth;
+        } else if (entity.maxHealth !== undefined && entity.maxHealth !== null) {
+            maxHealth = entity.maxHealth;
+        } else {
+            maxHealth = 5;
         }
 
+        let invulnerabilityDuration;
+
+        if (
+            config.invulnerabilityDuration !== undefined &&
+            config.invulnerabilityDuration !== null
+        ) {
+            invulnerabilityDuration = config.invulnerabilityDuration;
+        } else if (
+            config.invulnerableTime !== undefined &&
+            config.invulnerableTime !== null
+        ) {
+            invulnerabilityDuration = config.invulnerableTime;
+        } else if (
+            entity.invulnerabilityDuration !== undefined &&
+            entity.invulnerabilityDuration !== null
+        ) {
+            invulnerabilityDuration = entity.invulnerabilityDuration;
+        } else if (
+            entity.invulnerableTime !== undefined &&
+            entity.invulnerableTime !== null
+        ) {
+            invulnerabilityDuration = entity.invulnerableTime;
+        } else {
+            invulnerabilityDuration = 0;
+        }
+
+        entity.maxHealth = maxHealth;
         if (config.health !== undefined && config.health !== null) {
             entity.health = config.health;
         } else {
-            entity.health = entity.maxHealth;
+            entity.health = maxHealth;
         }
-
-        if (config.invulnerableTime !== undefined &&
-            config.invulnerableTime !== null
-        ) {
-            entity.invulnerableTime = config.invulnerableTime;
-        }else if (entity.invulnerableTime === undefined ||
-            entity.invulnerableTime === null
-        ) {
-            entity.invulnerableTime = 0;
-        }
-
+        entity.invulnerabilityDuration = invulnerabilityDuration;
+        entity.invulnerableTime = invulnerabilityDuration;
         entity.isInvulnerable = false;
         entity.isDead = false;
 
-        entity._onDamageCallback = config.onDamage || null;
-        entity._onDeathCallback = config.onDeath || null;
+        entity._onDamageCallback = config.onDamage ?? null;
+        entity._onDeathCallback = config.onDeath ?? null;
 
         return entity;
     }
 
-
     damage(entity, amount = 1, force = {}) {
-        
         if (!entity || !entity.active || entity.isDead || entity.isInvulnerable) {
             return false;
         }
@@ -46,22 +65,10 @@ export default class HealthSystem {
         entity.health = Math.max(0, entity.health - amount);
 
         if (entity.body) {
-            let knockbackX = 0;
-            let knockbackY = -160;
-
-            if (force.knockbackX !== undefined && force.knockbackX !== null) {
-                knockbackX = force.knockbackX;
-            } else {
-                knockbackX = 0;
-            }
-
-            if (force.knockbackY !== undefined && force.knockbackY !== null) {
-                knockbackY = force.knockbackY;
-            } else {
-                knockbackY = -160;
-            }
-
-            entity.body.setVelocity(knockbackX, knockbackY);
+            entity.body.setVelocity(
+                force.knockbackX ?? 0,
+                force.knockbackY ?? -160
+            );
         }
 
         if (entity.health <= 0) {
@@ -69,7 +76,8 @@ export default class HealthSystem {
             return true;
         }
 
-        entity.isInvulnerable = true;
+        const invulnerabilityDuration = entity.invulnerabilityDuration ?? 0;
+        entity.isInvulnerable = invulnerabilityDuration > 0;
 
         if (entity.setTintFill) {
             entity.setTintFill(0xffffff);
@@ -83,23 +91,30 @@ export default class HealthSystem {
             entity._onDamageCallback(entity, amount, force);
         }
 
-        this.scene.time.delayedCall(entity.invulnerableTime, () => {
-        if (!entity.active) {
-            return;
+        if (!entity.isInvulnerable) {
+            if (entity.clearTint) {
+                entity.clearTint();
+            }
+
+            return true;
         }
 
-        entity.isInvulnerable = false;
+        this.scene.time.delayedCall(invulnerabilityDuration, () => {
+            if (!entity.active) {
+                return;
+            }
 
-        if (entity.clearTint) {
-            entity.clearTint();
-        }
+            entity.isInvulnerable = false;
+
+            if (entity.clearTint) {
+                entity.clearTint();
+            }
         });
 
         return true;
     }
 
     heal(entity, amount = 1) {
-
         if (!entity || !entity.active || entity.isDead) {
             return false;
         }
@@ -109,7 +124,6 @@ export default class HealthSystem {
     }
 
     kill(entity) {
-
         if (!entity || !entity.active || entity.isDead) {
             return false;
         }

@@ -1,5 +1,17 @@
 import Phaser from 'phaser';
 
+import playerIdleSheet from '../assets/images/characters/evil-wizard/idle.png';
+import playerAttackSheet from '../assets/images/characters/evil-wizard/attack-1.png';
+import playerDeathSheet from '../assets/images/characters/evil-wizard/death.png';
+import playerFallSheet from '../assets/images/characters/evil-wizard/fall.png';
+import playerJumpSheet from '../assets/images/characters/evil-wizard/jump.png';
+import playerRunSheet from '../assets/images/characters/evil-wizard/run.png';
+import playerHurtSheet from '../assets/images/characters/evil-wizard/take-hit.png';
+
+import enemyWalkSheet from '../assets/images/enemies/monster-1/walk-right.png';
+import enemyDeathSheet from '../assets/images/enemies/monster-1/death-right.png';
+import enemyHurtSheet from '../assets/images/enemies/monster-1/hurt-right.png';
+
 import Player from '../entities/Player.js';
 import Finish from '../entities/Finish.js';
 import SpikeTrap from '../entities/SpikeTrap.js';
@@ -13,14 +25,30 @@ import HUD from '../ui/HUD.js';
 
 import { createLevelTimer } from '../utils/timer.js';
 import { addEnemyScore, calculateScore } from '../utils/score.js';
-
 import { createPlayerAnimations } from '../animations/playerAnimations.js';
 import { createEnemyAnimations } from '../animations/enemyAnimations.js';
+
+const PLAYER_SOURCE_FRAME_WIDTH = 250;
+const PLAYER_TRIM_FRAME = {
+    x: 68,
+    y: 40,
+    width: 150,
+    height: 132
+};
+
+const ENEMY_WALK_FRAME_WIDTHS = [308, 308, 308, 308, 308, 308, 308, 308, 308, 307];
+const ENEMY_HURT_FRAME_WIDTHS = [249, 249];
+const ENEMY_DEATH_FRAME_WIDTHS = [237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 240];
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
 
+        this.worldWidth = 2400;
+        this.worldHeight = 720;
+    }
+
+    init() {
         this.player = null;
         this.platforms = null;
         this.finish = null;
@@ -43,16 +71,42 @@ export default class GameScene extends Phaser.Scene {
         this.levelCompleted = false;
         this.playerDead = false;
 
-        this.worldWidth = 2400;
-        this.worldHeight = 720;
+        this.pendingAttack = false;
+        this.handleAttackKeyDown = null;
+        this.handleWindowAttackKeyDown = null;
+        this.handleCanvasPointerDown = null;
+
+        this.deathPanel = null;
+        this.deathBackdrop = null;
+        this.resultBanner = null;
+    }
+
+    preload() {
+        this.loadImageIfMissing('player-sheet', playerIdleSheet);
+        this.loadImageIfMissing('player-run-sheet', playerRunSheet);
+        this.loadImageIfMissing('player-jump-sheet', playerJumpSheet);
+        this.loadImageIfMissing('player-fall-sheet', playerFallSheet);
+        this.loadImageIfMissing('player-attack-sheet', playerAttackSheet);
+        this.loadImageIfMissing('player-hurt-sheet', playerHurtSheet);
+        this.loadImageIfMissing('player-death-sheet', playerDeathSheet);
+
+        this.loadImageIfMissing('enemy-sheet', enemyWalkSheet);
+        this.loadImageIfMissing('enemy-hurt-sheet', enemyHurtSheet);
+        this.loadImageIfMissing('enemy-death-sheet', enemyDeathSheet);
     }
 
     create() {
         this.createTextures();
+        this.definePlayerFrames();
+        this.defineEnemyFrames();
         createPlayerAnimations(this);
         createEnemyAnimations(this);
 
+        this.setupSceneLifecycle();
+
         this.cameras.main.setBackgroundColor('#7dd3fc');
+        this.cameras.main.roundPixels = true;
+
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
@@ -64,16 +118,15 @@ export default class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
 
         this.healthSystem = new HealthSystem(this);
+
         this.healthSystem.bind(this.player, {
             maxHealth: 5,
-            invulnerabilityDuration: 1000,
-            onDamage: () => this.handlePlayerDamaged(),
-            onDeath: () => this.handlePlayerDeath()
+            invulnerabilityDuration: 900
         });
 
         this.weaponSystem = new WeaponSystem(this, this.player);
 
-        this.createEnemies  ();
+        this.createEnemies();
         this.createTraps();
         this.createFinish();
 
@@ -95,40 +148,251 @@ export default class GameScene extends Phaser.Scene {
 
         this.updateHud();
 
-        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
     }
 
     update() {
-        if (!this.player || !this.player.active) {
+        if (!this.player?.active) {
             return;
         }
 
         if (!this.levelCompleted && !this.playerDead) {
             this.player.update(this.cursors, this.keys);
 
-        if (Phaser.Input.Keyboard.JustDown(this.keys.F)) {
-            this.weaponSystem.attack();
-        }
+            if (this.pendingAttack) {
+                this.pendingAttack = false;
 
-        this.enemies.forEach((enemy) => {
-            if (enemy && enemy.active) {
-                enemy.update();
+                const strike = this.weaponSystem.attack();
+
+                if (strike) {
+                    this.combatSystem?.processAttackHitbox(strike);
+                }
             }
-        });
+
+            this.enemies.forEach((enemy) => {
+                if (enemy?.active) {
+                    enemy.update();
+                }
+            });
         }
 
         this.updateHud();
     }
 
+    loadImageIfMissing(key, assetPath) {
+        if (this.textures.exists(key)) {
+            return;
+        }
+
+        this.load.image(key, assetPath);
+    }
+
+    definePlayerFrames() {
+        this.addUniformFrames('player-sheet', 8, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-run-sheet', 8, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-jump-sheet', 2, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-fall-sheet', 2, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-attack-sheet', 8, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-hurt-sheet', 3, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+        this.addUniformFrames('player-death-sheet', 7, PLAYER_SOURCE_FRAME_WIDTH, PLAYER_TRIM_FRAME);
+    }
+
+    defineEnemyFrames() {
+        this.addStripFrames('enemy-sheet', ENEMY_WALK_FRAME_WIDTHS, 201);
+        this.addStripFrames('enemy-hurt-sheet', ENEMY_HURT_FRAME_WIDTHS, 476);
+        this.addStripFrames('enemy-death-sheet', ENEMY_DEATH_FRAME_WIDTHS, 211);
+    }
+
+    addUniformFrames(textureKey, frameCount, sourceFrameWidth, crop) {
+        const texture = this.textures.get(textureKey);
+
+        if (!texture) {
+            return;
+        }
+
+        for (let index = 0; index < frameCount; index += 1) {
+            const frameName = String(index);
+
+            if (!texture.has(frameName)) {
+                texture.add(
+                    frameName,
+                    0,
+                    index * sourceFrameWidth + crop.x,
+                    crop.y,
+                    crop.width,
+                    crop.height
+                );
+            }
+        }
+    }
+
+    addStripFrames(textureKey, frameWidths, frameHeight) {
+        const texture = this.textures.get(textureKey);
+
+        if (!texture) {
+            return;
+        }
+
+        let x = 0;
+
+        frameWidths.forEach((frameWidth, index) => {
+            const frameName = String(index);
+
+            if (!texture.has(frameName)) {
+                texture.add(frameName, 0, x, 0, frameWidth, frameHeight);
+            }
+
+            x += frameWidth;
+        });
+    }
+
+    setupSceneLifecycle() {
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
+        this.events.once(Phaser.Scenes.Events.DESTROY, this.cleanup, this);
+    }
+
+    cleanup() {
+        if (this.hud) {
+            this.hud.destroy();
+            this.hud = null;
+        }
+
+        if (this.keys?.F && this.handleAttackKeyDown) {
+            this.keys.F.off('down', this.handleAttackKeyDown);
+            this.handleAttackKeyDown = null;
+        }
+
+        if (typeof window !== 'undefined' && this.handleWindowAttackKeyDown) {
+            window.removeEventListener('keydown', this.handleWindowAttackKeyDown, true);
+            this.handleWindowAttackKeyDown = null;
+        }
+
+        if (this.game?.canvas && this.handleCanvasPointerDown) {
+            this.game.canvas.removeEventListener('pointerdown', this.handleCanvasPointerDown);
+            this.handleCanvasPointerDown = null;
+        }
+
+        this.closeDeathMenu();
+
+        if (this.resultBanner) {
+            this.resultBanner.destroy();
+            this.resultBanner = null;
+        }
+    }
+
     createControls() {
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.keys = this.input.keyboard.addKeys({   
+
+        this.keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
             A: Phaser.Input.Keyboard.KeyCodes.A,
             D: Phaser.Input.Keyboard.KeyCodes.D,
             F: Phaser.Input.Keyboard.KeyCodes.F,
             SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE
         });
+
+        this.input.keyboard.addCapture([
+            Phaser.Input.Keyboard.KeyCodes.UP,
+            Phaser.Input.Keyboard.KeyCodes.LEFT,
+            Phaser.Input.Keyboard.KeyCodes.RIGHT,
+            Phaser.Input.Keyboard.KeyCodes.SPACE,
+            Phaser.Input.Keyboard.KeyCodes.W,
+            Phaser.Input.Keyboard.KeyCodes.A,
+            Phaser.Input.Keyboard.KeyCodes.D,
+            Phaser.Input.Keyboard.KeyCodes.F
+        ]);
+
+        this.bindCanvasFocus();
+        this.bindAttackHotkey();
+    }
+
+    bindCanvasFocus() {
+        if (!this.game?.canvas) {
+            return;
+        }
+
+        this.game.canvas.tabIndex = 0;
+        this.game.canvas.style.outline = 'none';
+
+        this.handleCanvasPointerDown = () => {
+            this.restoreGameFocus();
+        };
+
+        this.game.canvas.addEventListener('pointerdown', this.handleCanvasPointerDown);
+        this.restoreGameFocus();
+    }
+
+    bindAttackHotkey() {
+        this.handleAttackKeyDown = () => {
+            this.queueAttack();
+        };
+
+        this.keys.F.reset();
+        this.keys.F.setEmitOnRepeat(false);
+        this.keys.F.on('down', this.handleAttackKeyDown);
+
+        this.handleWindowAttackKeyDown = (event) => {
+            if (!this.isPhysicalAttackKey(event)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+            if (event.repeat) {
+                this.restoreGameFocus();
+                return;
+            }
+
+            this.queueAttack();
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('keydown', this.handleWindowAttackKeyDown, true);
+        }
+    }
+
+    isPhysicalAttackKey(event) {
+        if (!event) {
+            return false;
+        }
+
+        const code = typeof event.code === 'string' ? event.code : '';
+        const keyCode = typeof event.keyCode === 'number' ? event.keyCode : 0;
+
+        return code === 'KeyF' || keyCode === Phaser.Input.Keyboard.KeyCodes.F;
+    }
+
+    queueAttack() {
+        if (this.playerDead || this.levelCompleted) {
+            return;
+        }
+
+        this.pendingAttack = true;
+        this.restoreGameFocus();
+    }
+
+    restoreGameFocus() {
+        if (this.game?.events) {
+            this.game.events.off('blur', this.game.onBlur, this.game);
+        }
+
+        if (this.game?.loop?.focus) {
+            this.game.loop.focus();
+        }
+
+        if (this.game) {
+            this.game.hasFocus = true;
+        }
+
+        if (typeof window !== 'undefined') {
+            window.onblur = null;
+        }
+
+        if (this.game?.canvas?.focus) {
+            this.game.canvas.focus({ preventScroll: true });
+        }
     }
 
     createBackground() {
@@ -171,32 +435,36 @@ export default class GameScene extends Phaser.Scene {
                 x: 640,
                 y: 420,
                 patrolDistance: 110,
-                speed: 58 
+                speed: 72,
+                damage: 1,
+                maxHealth: 3
             },
             {
                 x: 1340,
                 y: 520,
                 patrolDistance: 120,
-                speed: 68 
+                speed: 78,
+                damage: 1,
+                maxHealth: 3
             },
             {
                 x: 1840,
                 y: 410,
                 patrolDistance: 100,
-                speed: 72 
+                speed: 84,
+                damage: 1,
+                maxHealth: 3
             }
         ];
 
         enemyConfigs.forEach((config) => {
             const enemy = new WalkingEnemy(this, config.x, config.y, config);
             this.enemies.push(enemy);
-
             this.physics.add.collider(enemy, this.platforms);
 
             this.healthSystem.bind(enemy, {
-                maxHealth: 2,
-                invulnerabilityDuration: 150,
-                onDeath: () => enemy.onDeath()
+                maxHealth: config.maxHealth,
+                invulnerabilityDuration: 350
             });
         });
     }
@@ -229,17 +497,18 @@ export default class GameScene extends Phaser.Scene {
         enemy._scoreApplied = true;
         this.enemiesDefeated += 1;
         this.score = addEnemyScore(this.score);
-        this.hud.setStatus('Враг повержен');
+
+        this.hud?.setStatus('Враг повержен');
         this.updateHud();
     }
 
     handlePlayerDamaged() {
         if (this.playerDead || this.levelCompleted) {
-        return;
+            return;
         }
 
         this.hitsTaken += 1;
-        this.cameras.main.shake(120, 0.004);
+        this.cameras.main.shake(18, 0.00045);
         this.updateHud();
     }
 
@@ -249,12 +518,11 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.playerDead = true;
-        this.hud.setStatus('Вы погибли');
-        this.updateHud();
+        this.player.lock();
 
-        this.time.delayedCall(2000, () => {
-            this.scene.restart();
-        });
+        this.hud?.setStatus('Вы погибли');
+        this.updateHud();
+        this.showDeathMenu();
     }
 
     handleLevelComplete() {
@@ -274,27 +542,10 @@ export default class GameScene extends Phaser.Scene {
 
         this.score = finalScore;
         this.updateHud();
-        this.hud.setStatus('Уровень пройден');
 
-        this.add
-        .text(this.cameras.main.midPoint.x, 220, 'Уровень пройден', {
-            fontFamily: 'Arial',
-            fontSize: '42px',
-            color: '#ffffff',
-            backgroundColor: '#0f172a',
-            padding: { x: 18, y: 12 }
-        })
-        .setScrollFactor(0)
-        .setOrigin(0.5)
-        .setDepth(100);
+        this.hud?.setStatus('Уровень пройден');
 
-        this.time.delayedCall(3600, () => {
-        if (this.scene.get('MenuScene')) {
-            this.scene.start('MenuScene');
-        } else {
-            this.scene.restart();
-        }
-        });
+        this.showVictoryMenu();
     }
 
     updateHud() {
@@ -305,6 +556,218 @@ export default class GameScene extends Phaser.Scene {
         this.hud.setHealth(this.player.health, this.player.maxHealth);
         this.hud.setScore(this.score);
         this.hud.setTime(this.levelTimer ? this.levelTimer.getFormatted() : '00:00');
+    }
+
+    showDeathMenu() {
+        if (this.deathBackdrop) {
+            return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.padding = '16px';
+        overlay.style.background = 'rgba(2, 6, 23, 0.68)';
+        overlay.style.zIndex = '2600';
+        overlay.style.boxSizing = 'border-box';
+
+        const panel = document.createElement('div');
+        panel.style.width = '420px';
+        panel.style.maxWidth = '100%';
+        panel.style.padding = '24px';
+        panel.style.borderRadius = '20px';
+        panel.style.background = 'rgba(15, 23, 42, 0.96)';
+        panel.style.border = '1px solid rgba(226, 232, 240, 0.2)';
+        panel.style.boxShadow = '0 18px 50px rgba(0, 0, 0, 0.38)';
+        panel.style.boxSizing = 'border-box';
+        panel.style.textAlign = 'center';
+        panel.style.fontFamily = 'Arial, sans-serif';
+
+        const title = document.createElement('div');
+        title.textContent = 'Вы погибли';
+        title.style.color = '#ffffff';
+        title.style.fontFamily = '"Press Start 2P", Arial, sans-serif';
+        title.style.fontSize = '14px';
+        title.style.lineHeight = '1.7';
+        title.style.marginBottom = '18px';
+
+        const subtitle = document.createElement('div');
+        subtitle.textContent = 'Выберите действие';
+        subtitle.style.color = '#cbd5e1';
+        subtitle.style.fontSize = '18px';
+        subtitle.style.lineHeight = '1.4';
+        subtitle.style.marginBottom = '24px';
+
+        const buttonWrap = document.createElement('div');
+        buttonWrap.style.display = 'grid';
+        buttonWrap.style.gap = '14px';
+
+        const restartButton = this.createDeathButton('Начать заново', '#9702A7', () => {
+            this.restartLevel();
+        });
+
+        const menuButton = this.createDeathButton('В главное меню', '#9702A7', () => {
+            this.returnToMenu();
+        });
+
+        buttonWrap.appendChild(restartButton);
+        buttonWrap.appendChild(menuButton);
+
+        panel.appendChild(title);
+        panel.appendChild(subtitle);
+        panel.appendChild(buttonWrap);
+        overlay.appendChild(panel);
+
+        document.body.appendChild(overlay);
+
+        this.deathPanel = panel;
+        this.deathBackdrop = overlay;
+    }
+
+    showVictoryMenu() {
+        if (this.deathBackdrop) {
+            return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.padding = '16px';
+        overlay.style.background = 'rgba(2, 6, 23, 0.68)';
+        overlay.style.zIndex = '2600';
+        overlay.style.boxSizing = 'border-box';
+
+        const panel = document.createElement('div');
+        panel.style.width = '440px';
+        panel.style.maxWidth = '100%';
+        panel.style.padding = '24px';
+        panel.style.borderRadius = '20px';
+        panel.style.background = 'rgba(15, 23, 42, 0.96)';
+        panel.style.border = '1px solid rgba(226, 232, 240, 0.2)';
+        panel.style.boxShadow = '0 18px 50px rgba(0, 0, 0, 0.38)';
+        panel.style.boxSizing = 'border-box';
+        panel.style.textAlign = 'center';
+        panel.style.fontFamily = 'Arial, sans-serif';
+
+        const title = document.createElement('div');
+        title.textContent = 'Уровень пройден';
+        title.style.color = '#ffffff';
+        title.style.fontFamily = '"Press Start 2P", Arial, sans-serif';
+        title.style.fontSize = '14px';
+        title.style.lineHeight = '1.7';
+        title.style.marginBottom = '16px';
+
+        const subtitle = document.createElement('div');
+        subtitle.textContent = 'Вы прошли уровень';
+        subtitle.style.color = '#cbd5e1';
+        subtitle.style.fontSize = '18px';
+        subtitle.style.lineHeight = '1.4';
+        subtitle.style.marginBottom = '18px';
+
+        const score = document.createElement('div');
+        score.textContent = `Очки: ${this.score}`;
+        score.style.color = '#f8fafc';
+        score.style.fontSize = '28px';
+        score.style.fontWeight = '700';
+        score.style.marginBottom = '24px';
+
+        const buttonWrap = document.createElement('div');
+        buttonWrap.style.display = 'grid';
+        buttonWrap.style.gap = '14px';
+
+        const restartButton = this.createDeathButton('Начать заново', '#9702A7', () => {
+            this.restartLevel();
+        });
+
+        const menuButton = this.createDeathButton('В главное меню', '#9702A7', () => {
+            this.returnToMenu();
+        });
+
+        buttonWrap.appendChild(restartButton);
+        buttonWrap.appendChild(menuButton);
+
+        panel.appendChild(title);
+        panel.appendChild(subtitle);
+        panel.appendChild(score);
+        panel.appendChild(buttonWrap);
+
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+        this.deathPanel = panel;
+        this.deathBackdrop = overlay;
+    }
+
+    createDeathButton(label, background, onClick) {
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.style.width = '100%';
+        button.style.padding = '14px 16px';
+        button.style.border = 'none';
+        button.style.borderRadius = '14px';
+        button.style.background = background;
+        button.style.color = '#ffffff';
+        button.style.fontFamily = 'Arial, sans-serif';
+        button.style.fontSize = '18px';
+        button.style.fontWeight = '700';
+        button.style.lineHeight = '1.2';
+        button.style.minHeight = '54px';
+
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.requestAnimationFrame(() => {
+                onClick();
+            });
+        });
+
+        return button;
+    }
+
+    closeDeathMenu() {
+        if (this.deathBackdrop) {
+            this.deathBackdrop.remove();
+            this.deathBackdrop = null;
+        }
+
+        this.deathPanel = null;
+    }
+
+    restartLevel() {
+        this.input.keyboard?.resetKeys();
+        this.closeDeathMenu();
+        this.scene.restart();
+    }
+
+    returnToMenu() {
+        this.input.keyboard?.resetKeys();
+        this.closeDeathMenu();
+        this.scene.start('MenuScene');
+    }
+
+    showResultBanner(text) {
+        if (this.resultBanner) {
+            this.resultBanner.destroy();
+        }
+
+        this.resultBanner = this.add
+            .text(this.cameras.main.width / 2, 220, text, {
+                fontFamily: 'Arial',
+                fontSize: '42px',
+                color: '#ffffff',
+                backgroundColor: '#0f172a',
+                padding: { x: 18, y: 12 }
+            })
+            .setScrollFactor(0)
+            .setOrigin(0.5)
+            .setDepth(180);
     }
 
     createTextures() {
@@ -347,114 +810,9 @@ export default class GameScene extends Phaser.Scene {
             graphics.lineTo(32, 24);
             graphics.lineTo(0, 24);
             graphics.closePath();
-            graphics.fillPath();
+            graphics.fillPath()
             graphics.generateTexture('spike', 32, 24);
             graphics.destroy();
-        }
-
-        if (!this.textures.exists('player-sheet')) {
-            const texture = this.textures.createCanvas('player-sheet', 192, 48);
-            const ctx = texture.context;
-            const frameWidth = 32;
-            const frameHeight = 48;
-
-            const drawPlayerFrame = (frameIndex, options = {}) => {
-                const x = frameIndex * frameWidth;
-                const bodyColor = options.bodyColor || '#2563eb';
-                const legLeftX = options.legLeftX ?? 9;
-                const legRightX = options.legRightX ?? 18;
-                const armY = options.armY ?? 17;
-                const staff = options.staff || false;
-                const faceColor = options.faceColor || '#f8fafc';
-
-                ctx.clearRect(x, 0, frameWidth, frameHeight);
-                ctx.fillStyle = bodyColor;
-                ctx.fillRect(x + 10, 12, 12, 18);
-                ctx.fillRect(x + legLeftX, 30, 5, 14);
-                ctx.fillRect(x + legRightX, 30, 5, 14);
-                ctx.fillRect(x + 7, armY, 18, 4);
-
-                ctx.fillStyle = faceColor;
-                ctx.fillRect(x + 10, 2, 12, 12);
-
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(x + 13, 6, 2, 2);
-                ctx.fillRect(x + 18, 6, 2, 2);
-
-                if (staff) {
-                    ctx.fillStyle = '#d97706';
-                    ctx.fillRect(x + 22, 10, 7, 26);  
-                }
-        };
-
-        drawPlayerFrame(0, {});
-        drawPlayerFrame(1, 
-            { 
-                legLeftX: 7,
-                legRightX: 20 
-            });
-        drawPlayerFrame(2, 
-            {
-                legLeftX: 11,
-                legRightX: 16 
-            });
-        drawPlayerFrame(3,
-            {
-                armY: 12 
-            });
-        drawPlayerFrame(4, 
-            { 
-                bodyColor: '#1d4ed8', 
-                staff: true, 
-                armY: 15 
-            });
-        drawPlayerFrame(5, 
-            { 
-                bodyColor: '#ef4444', 
-                faceColor: '#fee2e2', 
-                armY: 20 
-            });
-
-        for (let i = 0; i < 6; i += 1) {
-            texture.add(String(i), 0, i * frameWidth, 0, frameWidth, frameHeight);
-        }
-        texture.refresh();
-        }
-
-        if (!this.textures.exists('enemy-sheet')) {
-
-            const texture = this.textures.createCanvas('enemy-sheet', 128, 32);
-            const ctx = texture.context;
-            const frameWidth = 32;
-            const drawEnemyFrame = (frameIndex, options = {}) => {
-                const x = frameIndex * frameWidth;
-                const color = options.color || '#16a34a';
-                const eyeColor = options.eyeColor || '#ffffff';
-                const armOffset = options.armOffset ?? 0;
-
-                ctx.clearRect(x, 0, frameWidth, 32);
-                ctx.fillStyle = color;
-                ctx.fillRect(x + 6, 8, 20, 18);
-                ctx.fillRect(x + 8, 26, 5, 4);
-                ctx.fillRect(x + 19, 26, 5, 4);
-                ctx.fillRect(x + 3 + armOffset, 14, 5, 4);
-                ctx.fillRect(x + 24 - armOffset, 14, 5, 4);
-
-                ctx.fillStyle = eyeColor;
-                ctx.fillRect(x + 11, 13, 3, 3);
-                ctx.fillRect(x + 18, 13, 3, 3);
-            };
-
-            drawEnemyFrame(0, {});
-            drawEnemyFrame(1, { armOffset: 2 });
-            drawEnemyFrame(2, { color: '#f59e0b' });
-            drawEnemyFrame(3, { color: '#ef4444', eyeColor: '#fee2e2' });
-
-            for (let i = 0; i < 4; i += 1) {
-                texture.add(String(i), 0, i * frameWidth, 0, frameWidth, 32);
-            }
-
-            texture.refresh();
         }
     }
 }

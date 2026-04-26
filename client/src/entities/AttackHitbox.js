@@ -1,45 +1,29 @@
-import AttackHitbox from './AttackHitbox.js';
+import Phaser from 'phaser';
 
+export default class AttackHitbox extends Phaser.GameObjects.Zone {
+    constructor(scene, x, y, width, height, config = {}) {
+        super(scene, x, y, width, height);
 
-export default class StaffStrike extends AttackHitbox {
-    constructor(scene, player, config = {}) {
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
 
-        let direction = 1
-        if (player.facing === 'left') {
-            direction = -1
-        }else {
-            direction = 1
-        }
+        this.owner = config.owner ?? null;
+        this.damage = config.damage ?? 1;
+        this.direction = config.direction ?? 1;
+        this.knockbackX = config.knockbackX ?? 265;
+        this.knockbackY = config.knockbackY ?? -110;
+        this.lifeSpan = config.lifeSpan ?? 150;
 
-        const width = config.width ?? 54;
-        const height = config.height ?? 28;
+        this.hitTargets = new Set();
 
-        const x = player.x + direction * 34;
-        const y = player.y + 2;
+        this.body.setAllowGravity(false);
+        this.body.setImmovable(true);
+        this.body.hitboxRef = this;
 
-        super(scene, x, y, width, height, {
-            owner: player,
-            damage: config.damage ?? 1,
-            direction,
-            knockbackX: config.knockbackX ?? 265,
-            knockbackY: config.knockbackY ?? -110,
-            lifeSpan: config.lifeSpan ?? 150
-        });
-
-        this.flash = scene.add.rectangle(x, y, width, height, 0xa855f7, 0.4);
-        this.flash.setDepth(20);
-
-        scene.time.delayedCall(100, () => {
-            if (this.flash && this.flash.active) {
-                this.flash.destroy();
+        scene.time.delayedCall(this.lifeSpan, () => {
+            if (this.active) {
+                this.destroy();
             }
         });
-    }
-
-    destroy(fromScene) {
-        if (this.flash && this.flash.active) {
-            this.flash.destroy();
-        }
-        super.destroy(fromScene);
     }
 }
