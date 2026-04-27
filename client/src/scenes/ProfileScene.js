@@ -5,8 +5,10 @@ import Input from '../ui/Input.js';
 import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
 
+
 export default class ProfileScene extends Phaser.Scene {
     constructor() {
+
         super('ProfileScene');
 
         this.root = null;
@@ -22,15 +24,6 @@ export default class ProfileScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#0f172a');
-
-        this.add
-            .text(this.scale.width / 2, 80, 'Профиль игрока', {
-                fontFamily: 'Arial',
-                fontSize: '42px',
-                color: '#ffffff',
-                fontStyle: 'bold'
-            })
-            .setOrigin(0.5);
 
         this.notification = new Notification();
         this.createLayout();
@@ -53,7 +46,6 @@ export default class ProfileScene extends Phaser.Scene {
         this.root.style.borderRadius = '16px';
         this.root.style.background = 'rgba(15, 23, 42, 0.96)';
         this.root.style.border = '1px solid rgba(255,255,255,0.08)';
-        this.root.style.boxShadow = '0 14px 50px rgba(0,0,0,0.35)';
         this.root.style.zIndex = '1000';
         this.root.style.boxSizing = 'border-box';
 
@@ -134,7 +126,7 @@ export default class ProfileScene extends Phaser.Scene {
         this.saveButton.setDisabled(isDisabled);
         this.backButton.setDisabled(isDisabled);
 
-        this.saveButton.setText(isDisabled ? 'Сохранение...' : 'Сохранить');
+        this.saveButton.setText(isDisabled ? 'Сохранение' : 'Сохранить');
     }
 
     clearErrors() {
