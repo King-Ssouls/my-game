@@ -4,6 +4,7 @@ import authStore from '../store/authStore.js';
 import Input from '../ui/Input.js';
 import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
+import { clearGameHud } from '../ui/HUD.js';
 
 
 export default class ProfileScene extends Phaser.Scene {
@@ -23,6 +24,7 @@ export default class ProfileScene extends Phaser.Scene {
     }
 
     create() {
+        clearGameHud();
         this.cameras.main.setBackgroundColor('#0f172a');
 
         this.notification = new Notification();

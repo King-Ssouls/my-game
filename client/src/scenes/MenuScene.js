@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import authStore from '../store/authStore.js';
 import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
+import { clearGameHud } from '../ui/HUD.js';
 import forestImage from '../assets/images/backgrounds/forest.png';
 import { addBrandTitle, addMenuBackdrop, applyMenuPanelStyles } from '../utils/menuTheme.js';
 
@@ -14,6 +15,7 @@ export default class MenuScene extends Phaser.Scene {
         this.playButton = null;
         this.levelsButton = null;
         this.profileButton = null;
+        this.leaderboardButton = null;
         this.logoutButton = null;
     }
 
@@ -24,6 +26,7 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        clearGameHud();
         addMenuBackdrop(this);
         this.cameras.main.fadeIn(250, 0, 0, 0);
         addBrandTitle(this);
@@ -45,6 +48,7 @@ export default class MenuScene extends Phaser.Scene {
         this.panel.style.maxWidth = 'calc(100vw - 32px)';
         this.panel.style.padding = '24px';
         this.panel.style.zIndex = '1000';
+
         applyMenuPanelStyles(this.panel);
 
         const title = document.createElement('div');
@@ -52,7 +56,7 @@ export default class MenuScene extends Phaser.Scene {
         title.style.fontSize = '18px';
         title.style.fontWeight = '700';
         title.style.marginBottom = '10px';
-        title.textContent = '\u0413\u043b\u0430\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e';
+        title.textContent = 'Главное меню';
 
         const subtitle = document.createElement('div');
         subtitle.style.color = 'rgba(226, 239, 217, 0.82)';
@@ -60,7 +64,7 @@ export default class MenuScene extends Phaser.Scene {
         subtitle.style.lineHeight = '1.6';
         subtitle.style.marginBottom = '20px';
         subtitle.textContent =
-            '\u0418\u0433\u0440\u0430\u0442\u044c \u0441\u0440\u0430\u0437\u0443 \u0437\u0430\u043f\u0443\u0441\u043a\u0430\u0435\u0442 \u0443\u0440\u043e\u0432\u0435\u043d\u044c, \u0430 \u043a\u043d\u043e\u043f\u043a\u0430 "\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0440\u0442" \u043e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u0442 \u043c\u0435\u043d\u044e \u0443\u0440\u043e\u0432\u043d\u0435\u0439.';
+            'Кнопка "Играть" сразу запускает первый уровень. Кнопка "Выбор карт" открывает список уровней.';
 
         this.panel.appendChild(title);
         this.panel.appendChild(subtitle);
@@ -74,7 +78,7 @@ export default class MenuScene extends Phaser.Scene {
 
         this.playButton = new Button({
             container: buttons,
-            text: '\u0418\u0433\u0440\u0430\u0442\u044c',
+            text: 'Играть',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -83,7 +87,7 @@ export default class MenuScene extends Phaser.Scene {
 
         this.levelsButton = new Button({
             container: buttons,
-            text: '\u0412\u044b\u0431\u043e\u0440 \u043a\u0430\u0440\u0442',
+            text: 'Выбор карт',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -92,16 +96,25 @@ export default class MenuScene extends Phaser.Scene {
 
         this.profileButton = new Button({
             container: buttons,
-            text: '\u041f\u0440\u043e\u0444\u0438\u043b\u044c',
+            text: 'Профиль',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
             onClick: () => this.scene.start('ProfileScene')
         });
 
+        this.leaderboardButton = new Button({
+            container: buttons,
+            text: 'Рекорды',
+            variant: 'primary',
+            fontFamily: '"Press Start 2P", sans-serif',
+            fontSize: '12px',
+            onClick: () => this.scene.start('LeaderboardScene')
+        });
+
         this.logoutButton = new Button({
             container: buttons,
-            text: '\u0412\u044b\u0439\u0442\u0438',
+            text: 'Выйти',
             variant: 'primary',
             fontFamily: '"Press Start 2P", sans-serif',
             fontSize: '12px',
@@ -123,7 +136,7 @@ export default class MenuScene extends Phaser.Scene {
 
     handleLogout() {
         authStore.clear();
-        this.notification.show('\u0412\u044b \u0432\u0435\u0440\u043d\u0443\u043b\u0438\u0441\u044c \u0432 \u043c\u0435\u043d\u044e \u0432\u0445\u043e\u0434\u0430.', 'info');
+        this.notification.show('Вы вернулись в меню входа.', 'info');
         this.scene.start('LoginScene');
     }
 
@@ -141,6 +154,11 @@ export default class MenuScene extends Phaser.Scene {
         if (this.profileButton) {
             this.profileButton.destroy();
             this.profileButton = null;
+        }
+
+        if (this.leaderboardButton) {
+            this.leaderboardButton.destroy();
+            this.leaderboardButton = null;
         }
 
         if (this.logoutButton) {

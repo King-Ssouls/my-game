@@ -21,7 +21,10 @@ import WeaponSystem from '../systems/WeaponSystem.js';
 import CombatSystem from '../systems/CombatSystem.js';
 import HealthSystem from '../systems/HealthSystem.js';
 
-import HUD from '../ui/HUD.js';
+import HUD, { clearGameHud } from '../ui/HUD.js';
+import authStore from '../store/authStore.js';
+import levelsApi from '../api/levelsApi.js';
+import recordsApi from '../api/recordsApi.js';
 
 import { getLevelByNumber } from '../data/levels.js';
 import { createLevelTimer } from '../utils/timer.js';
@@ -66,6 +69,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.hud = null;
         this.levelTimer = null;
+        this.levelRunToken = null;
 
         this.cursors = null;
         this.keys = null;
@@ -160,6 +164,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.hud = new HUD(this);
         this.levelTimer = createLevelTimer(this);
+        void this.startLevelSession();
 
         this.updateHud();
 
@@ -271,6 +276,8 @@ export default class GameScene extends Phaser.Scene {
             this.hud.destroy();
             this.hud = null;
         }
+
+        clearGameHud();
 
         if (this.keys?.F && this.handleAttackKeyDown) {
             this.keys.F.off('down', this.handleAttackKeyDown);
@@ -389,22 +396,6 @@ export default class GameScene extends Phaser.Scene {
     }
 
     restoreGameFocus() {
-        if (this.game?.events) {
-            this.game.events.off('blur', this.game.onBlur, this.game);
-        }
-
-        if (this.game?.loop?.focus) {
-            this.game.loop.focus();
-        }
-
-        if (this.game) {
-            this.game.hasFocus = true;
-        }
-
-        if (typeof window !== 'undefined') {
-            window.onblur = null;
-        }
-
         if (this.game?.canvas?.focus) {
             this.game.canvas.focus({ preventScroll: true });
         }
@@ -594,7 +585,7 @@ export default class GameScene extends Phaser.Scene {
         this.showDeathMenu();
     }
 
-    handleLevelComplete() {
+    async handleLevelComplete() {
         if (this.levelCompleted || this.playerDead) {
             return;
         }
@@ -614,6 +605,16 @@ export default class GameScene extends Phaser.Scene {
 
         this.hud?.setStatus('Уровень пройден');
 
+        this.closeDeathMenu();
+
+        if (this.hud) {
+            this.hud.destroy();
+            this.hud = null;
+        }
+
+        clearGameHud();
+        await this.submitLevelRecord();
+
         this.scene.start('ResultScene', {
             levelNumber: this.levelNumber,
             time: this.levelTimer?.getMs?.() ?? 0,
@@ -631,6 +632,50 @@ export default class GameScene extends Phaser.Scene {
         this.hud.setHealth(this.player.health, this.player.maxHealth);
         this.hud.setScore(this.score);
         this.hud.setTime(this.levelTimer ? this.levelTimer.getFormatted() : '00:00');
+    }
+
+    async startLevelSession() {
+        this.levelRunToken = null;
+        authStore.hydrate();
+
+        if (!authStore.isAuthenticated()) {
+            return;
+        }
+
+        try {
+            const result = await levelsApi.startLevel(this.levelNumber);
+            this.levelRunToken = result?.runToken || null;
+        } catch (error) {
+            this.levelRunToken = null;
+            console.warn('Failed to start level session', error);
+        }
+    }
+
+    async submitLevelRecord() {
+        authStore.hydrate();
+
+        if (!authStore.isAuthenticated() || !this.levelRunToken) {
+            return null;
+        }
+
+        const payload = {
+            levelNumber: Math.max(1, Math.floor(Number(this.levelNumber) || 1)),
+            runToken: String(this.levelRunToken),
+            elapsedMs: Math.max(0, Math.floor(Number(this.levelTimer?.getMs?.() ?? 0))),
+            score: Math.max(0, Math.floor(Number(this.score) || 0)),
+            kills: Math.max(0, Math.floor(Number(this.enemiesDefeated) || 0)),
+            damageTaken: Math.max(0, Math.floor(Number(this.hitsTaken) || 0)),
+            deathsTaken: 0
+        };
+
+        try {
+            return await recordsApi.completeLevel(payload);
+        } catch (error) {
+            console.warn('Failed to submit level record', payload, error);
+            return null;
+        } finally {
+            this.levelRunToken = null;
+        }
     }
 
     showDeathMenu() {

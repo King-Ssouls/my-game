@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import levels from '../data/levels.js';
 import LevelCard from '../ui/LevelCard.js';
+import { clearGameHud } from '../ui/HUD.js';
 
 const LEVEL_CARD_WIDTH = 336;
 const LEVEL_CARD_HEIGHT = 126;
@@ -21,6 +22,7 @@ export default class LevelSelectScene extends Phaser.Scene {
     create() {
         const { width } = this.scale;
 
+        clearGameHud();
         this.cameras.main.setBackgroundColor('#0b1220');
 
         this.add

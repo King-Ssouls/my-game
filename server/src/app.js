@@ -5,6 +5,10 @@ const env = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
 const errorMiddleware = require('./middleware/error.middleware');
 const profileRoutes = require('./routes/profile.routes');
+const levelsRoutes = require('./routes/levels.routes');
+const recordsRoutes = require('./routes/records.routes');
+
+
 
 const app = express();
 
@@ -27,6 +31,8 @@ app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/levels', levelsRoutes);
+app.use('/api/records', recordsRoutes);
 
 app.get('/', (req, res) => {
     res.json({

@@ -70,7 +70,20 @@ async function request(path, method = 'GET', body = null) {
 
     if (!response.ok) {
         const baseMessage = normalizeErrorMessage(data?.message, response.status);
-        const details = Array.isArray(data?.details) ? data.details.join(', ') : '';
+        const details = Array.isArray(data?.details)
+            ? data.details
+                .map((item) => {
+                    if (typeof item === 'string') {
+                        return item;
+                    }
+
+                    const field = item?.field ? `${item.field}: ` : '';
+                    const message = item?.message || '';
+                    return `${field}${message}`.trim();
+                })
+                .filter(Boolean)
+                .join(', ')
+            : '';
         const finalMessage = details ? `${baseMessage}: ${details}` : baseMessage;
 
         const error = new Error(finalMessage);

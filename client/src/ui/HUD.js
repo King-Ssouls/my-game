@@ -1,8 +1,23 @@
+const GAME_HUD_SELECTOR = '[data-game-hud="true"]';
+
+export function clearGameHud() {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    document.querySelectorAll(GAME_HUD_SELECTOR).forEach((node) => {
+        node.remove();
+    });
+}
+
 export default class HUD {
     constructor(scene) {
         this.scene = scene;
+        clearGameHud();
+
         this.mountNode = document.getElementById('app') || document.body;
         this.root = document.createElement('div');
+        this.root.dataset.gameHud = 'true';
         this.root.style.position = 'absolute';
         this.root.style.inset = '0';
         this.root.style.pointerEvents = 'none';
@@ -20,8 +35,8 @@ export default class HUD {
         this.panel.style.gap = '10px';
 
         this.healthText = this.createBadge('HP: 0/0', '24px');
-        this.scoreText = this.createBadge('Очки: 0', '22px');
-        this.timeText = this.createBadge('Время: 00:00', '22px');
+        this.scoreText = this.createBadge('\u041e\u0447\u043a\u0438: 0', '22px');
+        this.timeText = this.createBadge('\u0412\u0440\u0435\u043c\u044f: 00:00', '22px');
 
         this.statusText = document.createElement('div');
         this.statusText.style.position = 'absolute';
@@ -66,11 +81,11 @@ export default class HUD {
     }
 
     setScore(score) {
-        this.scoreText.textContent = `Очки: ${score}`;
+        this.scoreText.textContent = `\u041e\u0447\u043a\u0438: ${score}`;
     }
 
     setTime(text) {
-        this.timeText.textContent = `Время: ${text}`;
+        this.timeText.textContent = `\u0412\u0440\u0435\u043c\u044f: ${text}`;
     }
 
     setStatus(text) {

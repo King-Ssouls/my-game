@@ -4,6 +4,7 @@ import authStore from '../store/authStore.js';
 import Input from '../ui/Input.js';
 import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
+import { clearGameHud } from '../ui/HUD.js';
 import { addBrandTitle, addMenuBackdrop, applyMenuPanelStyles } from '../utils/menuTheme.js';
 
 export default class LoginScene extends Phaser.Scene {
@@ -29,6 +30,7 @@ export default class LoginScene extends Phaser.Scene {
     create() {
         const { width } = this.scale;
 
+        clearGameHud();
         this.isTransitioning = false;
         this.authMode = 'login';
         addMenuBackdrop(this);

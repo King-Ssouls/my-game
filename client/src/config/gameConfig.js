@@ -7,6 +7,7 @@ import GameScene from '../scenes/GameScene.js';
 import ProfileScene from '../scenes/ProfileScene.js';
 import LevelSelectScene from '../scenes/LevelSelectScene.js';
 import ResultScene from '../scenes/ResultScene.js';
+import LeaderboardScene from '../scenes/LeaderboardScene.js';
 
 const gameConfig = {
     type: Phaser.AUTO,
@@ -21,6 +22,9 @@ const gameConfig = {
             gravity: { y: 900 },
             debug: false
         }
+    },
+    audio: {
+        noAudio: true
     },
     autoFocus: true,
     disableContextMenu: true,
@@ -51,7 +55,8 @@ const gameConfig = {
         GameScene,
         ProfileScene,
         LevelSelectScene,
-        ResultScene
+        ResultScene,
+        LeaderboardScene
     ]
 };
 
