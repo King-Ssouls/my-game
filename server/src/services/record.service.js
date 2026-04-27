@@ -1,4 +1,5 @@
 const Record = require('../models/Record');
+const Progress = require('../models/Progress');
 const levelService = require('./level.service');
 const levelRunService = require('./levelRun.service');
 const antiCheatService = require('./antiCheat.service');
@@ -58,6 +59,113 @@ function isBetterResult(candidate, currentRecord) {
     }
 
     return candidate.kills > currentRecord.kills;
+}
+
+function calculateLevelStars(score, maxScore) {
+    const safeScore = Math.max(0, Number(score) || 0);
+    const safeMaxScore = Math.max(0, Number(maxScore) || 0);
+
+    if (safeMaxScore <= 0) {
+        return 1;
+    }
+
+    const ratio = safeScore / safeMaxScore;
+
+    if (ratio >= 0.9) {
+        return 3;
+    }
+
+    if (ratio >= 0.6) {
+        return 2;
+    }
+
+    return 1;
+}
+
+async function updateProgressAfterCompletion({ userId, level, normalizedResult }) {
+    const progress = await Progress.findOneAndUpdate(
+        { userId },
+        {
+            $setOnInsert: {
+                userId
+            }
+        },
+        {
+            new: true,
+            upsert: true,
+            setDefaultsOnInsert: true
+        }
+    );
+
+    const unlockedLevels = new Set(progress.unlockedLevels || [1]);
+    const completedLevels = new Set(progress.completedLevels || []);
+
+    unlockedLevels.add(level.number);
+    completedLevels.add(level.number);
+
+    let nextLevelNumber = null;
+
+    try {
+        const nextLevel = await levelService.getLevelByNumberOrThrow(level.number + 1);
+
+        if (nextLevel?.isPublished !== false) {
+            nextLevelNumber = Number(nextLevel.number);
+            unlockedLevels.add(nextLevelNumber);
+        }
+    } catch (error) {
+        nextLevelNumber = null;
+    }
+
+    const nextStars = calculateLevelStars(normalizedResult.score, level.maxScore);
+    const levelStars = Array.isArray(progress.levelStars)
+        ? progress.levelStars.map((item) => ({
+            levelNumber: Number(item?.levelNumber) || 0,
+            stars: Number(item?.stars) || 0
+        }))
+        : [];
+
+    const starEntryIndex = levelStars.findIndex((item) => {
+        return Number(item.levelNumber) === Number(level.number);
+    });
+
+    if (starEntryIndex >= 0) {
+        levelStars[starEntryIndex].stars = Math.max(levelStars[starEntryIndex].stars, nextStars);
+    } else {
+        levelStars.push({
+            levelNumber: level.number,
+            stars: nextStars
+        });
+    }
+
+    const totalScoreAggregate = await Record.aggregate([
+        {
+            $match: {
+                userId: progress.userId
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalScore: {
+                    $sum: '$bestScore'
+                }
+            }
+        }
+    ]);
+
+    progress.unlockedLevels = [...unlockedLevels].sort((a, b) => a - b);
+    progress.completedLevels = [...completedLevels].sort((a, b) => a - b);
+    progress.levelStars = levelStars.sort((a, b) => a.levelNumber - b.levelNumber);
+    progress.currentLevel = nextLevelNumber
+        ? Math.max(Number(progress.currentLevel) || 1, nextLevelNumber)
+        : Math.max(Number(progress.currentLevel) || 1, level.number);
+    progress.totalScore = Number(totalScoreAggregate[0]?.totalScore || 0);
+    progress.totalPlayTime = Number(progress.totalPlayTime || 0) + Math.max(0, Math.floor(normalizedResult.elapsedMs / 1000));
+    progress.totalDeaths = Number(progress.totalDeaths || 0) + Math.max(0, Number(normalizedResult.deathsTaken) || 0);
+
+    await progress.save();
+
+    return progress;
 }
 
 async function getLeaderboardForLevel(level) {
@@ -149,6 +257,11 @@ async function submitCompletion({ userId, payload }) {
 
     await levelRunService.markRunCompleted(run._id, normalizedResult);
     invalidateLeaderboard(level.number);
+    const progress = await updateProgressAfterCompletion({
+        userId,
+        level,
+        normalizedResult
+    });
 
     const leaderboard = await getLeaderboardForLevel(level);
 
@@ -162,6 +275,7 @@ async function submitCompletion({ userId, payload }) {
         isPersonalBest: !personalBestBefore || better,
         level: levelService.formatLevel(level),
         submitted: normalizedResult,
+        progress,
         personalBest,
         leaderboard
     };

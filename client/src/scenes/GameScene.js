@@ -669,7 +669,17 @@ export default class GameScene extends Phaser.Scene {
         };
 
         try {
-            return await recordsApi.completeLevel(payload);
+            const result = await recordsApi.completeLevel(payload);
+
+            if (result?.progress) {
+                authStore.setSession({
+                    token: authStore.getToken(),
+                    user: authStore.getUser(),
+                    progress: result.progress
+                });
+            }
+
+            return result;
         } catch (error) {
             console.warn('Failed to submit level record', payload, error);
             return null;

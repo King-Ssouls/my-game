@@ -11,12 +11,17 @@ const BUTTON_COLOR = 0x9702a7;
 const BUTTON_HOVER_COLOR = 0xb103c3;
 
 function formatTimeValue(ms) {
-    const safeMs = Math.max(0, Number(ms) || 0);
-    const totalSeconds = Math.floor(safeMs / 1000);
+    const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const minutesString = String(minutes);
+    const secondsString = String(seconds);
+    const formattedMinutes = minutesString.padStart(2, '0');
+    const formattedSeconds = secondsString.padStart(2, '0');
+
+    const result = `${formattedMinutes}:${formattedSeconds}`;
+    return result;
 }
 
 export default class ResultScene extends Phaser.Scene {
@@ -30,6 +35,7 @@ export default class ResultScene extends Phaser.Scene {
         this.damageTaken = 0;
         this.handleEscape = null;
         this.actionButtons = [];
+        this.backButton = null;
     }
 
     init(data) {
@@ -53,8 +59,31 @@ export default class ResultScene extends Phaser.Scene {
 
         this.add.rectangle(centerX, height / 2, width, height, 0x030712, 0.78);
 
+        this.backButton = this.add
+            .text(54, 42, '← Назад', {
+                fontFamily: 'Arial',
+                fontSize: '24px',
+                color: '#e2e8f0',
+                backgroundColor: '#0f172a',
+                padding: { x: 12, y: 8 }
+            })
+            .setOrigin(0, 0.5)
+            .setInteractive({ useHandCursor: true });
+
+        this.backButton.on('pointerover', () => {
+            this.backButton.setColor('#ffffff');
+        });
+
+        this.backButton.on('pointerout', () => {
+            this.backButton.setColor('#e2e8f0');
+        });
+
+        this.backButton.on('pointerdown', () => {
+            this.scene.start('MenuScene');
+        });
+
         this.add
-            .text(centerX, panelY - PANEL_HEIGHT / 2 - 34, `\u0423\u0440\u043e\u0432\u0435\u043d\u044c ${this.levelNumber}`, {
+            .text(centerX, panelY - PANEL_HEIGHT / 2 - 34, `Уровень ${this.levelNumber}`, {
                 fontFamily: 'Arial',
                 fontSize: '28px',
                 color: '#e2e8f0',
@@ -69,7 +98,7 @@ export default class ResultScene extends Phaser.Scene {
             .setStrokeStyle(2, 0x334155, 1);
 
         const title = this.add
-            .text(0, -168, '\u0418\u0442\u043e\u0433\u0438 \u043a\u0430\u0440\u0442\u044b', {
+            .text(0, -168, 'Итоги карты', {
                 fontFamily: 'Arial',
                 fontSize: '38px',
                 color: '#ffffff',
@@ -84,10 +113,10 @@ export default class ResultScene extends Phaser.Scene {
         panel.add([panelBackground, title, statsPanel]);
 
         const rows = [
-            ['\u041e\u0447\u043a\u0438', String(this.score)],
-            ['\u0412\u0440\u0435\u043c\u044f', formatTimeValue(this.elapsedMs)],
-            ['\u0423\u0431\u0438\u0442\u043e \u0432\u0440\u0430\u0433\u043e\u0432', String(this.kills)],
-            ['\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u043e \u0443\u0440\u043e\u043d\u0430', String(this.damageTaken)]
+            ['Очки', String(this.score)],
+            ['Время', formatTimeValue(this.elapsedMs)],
+            ['Убито врагов', String(this.kills)],
+            ['Получено урона', String(this.damageTaken)]
         ];
 
         rows.forEach(([label, value], index) => {
@@ -114,13 +143,13 @@ export default class ResultScene extends Phaser.Scene {
             panel.add([labelText, valueText]);
         });
 
-        const restartButton = this.createActionButton(-150, 154, '\u041d\u0430\u0447\u0430\u0442\u044c \u0437\u0430\u043d\u043e\u0432\u043e', () => {
+        const restartButton = this.createActionButton(-150, 154, 'Начать заново', () => {
             this.scene.start('GameScene', {
                 levelNumber: this.levelNumber
             });
         });
 
-        const menuButton = this.createActionButton(150, 154, '\u0412 \u043c\u0435\u043d\u044e', () => {
+        const menuButton = this.createActionButton(150, 154, 'В меню', () => {
             this.scene.start('MenuScene');
         });
 
@@ -184,5 +213,11 @@ export default class ResultScene extends Phaser.Scene {
         });
 
         this.actionButtons = [];
+
+        if (this.backButton) {
+            this.backButton.removeAllListeners();
+            this.backButton.destroy();
+            this.backButton = null;
+        }
     }
 }

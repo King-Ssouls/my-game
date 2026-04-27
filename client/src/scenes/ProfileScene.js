@@ -6,10 +6,8 @@ import Button from '../ui/Button.js';
 import Notification from '../ui/Notification.js';
 import { clearGameHud } from '../ui/HUD.js';
 
-
 export default class ProfileScene extends Phaser.Scene {
     constructor() {
-
         super('ProfileScene');
 
         this.root = null;
@@ -19,7 +17,6 @@ export default class ProfileScene extends Phaser.Scene {
         this.backButton = null;
         this.notification = null;
         this.statsBlock = null;
-
         this.loadedProfile = null;
     }
 
@@ -115,7 +112,7 @@ export default class ProfileScene extends Phaser.Scene {
         this.backButton = new Button({
             container: buttonsRow,
             text: 'Назад в меню',
-            variant: 'secondary',
+            variant: 'primary',
             onClick: () => this.handleBack()
         });
 
@@ -127,7 +124,6 @@ export default class ProfileScene extends Phaser.Scene {
         this.emailInput.setDisabled(isDisabled);
         this.saveButton.setDisabled(isDisabled);
         this.backButton.setDisabled(isDisabled);
-
         this.saveButton.setText(isDisabled ? 'Сохранение' : 'Сохранить');
     }
 
@@ -153,7 +149,6 @@ export default class ProfileScene extends Phaser.Scene {
 
             this.nicknameInput.setValue(result.user?.nickname || '');
             this.emailInput.setValue(result.user?.email || '');
-
             this.renderStats(result.stats);
 
             authStore.setSession({
@@ -182,9 +177,8 @@ export default class ProfileScene extends Phaser.Scene {
 
     renderStats(stats = {}) {
         this.statsBlock.innerHTML = `
-            <div><strong>Открытых уровней:</strong> ${stats.unlockedLevelsCount ?? 0}</div>
+            <div><strong>Изучено уровней:</strong> ${stats.unlockedLevelsCount ?? 0}</div>
             <div><strong>Пройденных уровней:</strong> ${stats.completedLevelsCount ?? 0}</div>
-            <div><strong>Всего звёзд:</strong> ${stats.totalStars ?? 0}</div>
             <div><strong>Текущий уровень:</strong> ${stats.currentLevel ?? 1}</div>
             <div><strong>Общий счёт:</strong> ${stats.totalScore ?? 0}</div>
             <div><strong>Смертей:</strong> ${stats.totalDeaths ?? 0}</div>
@@ -228,7 +222,6 @@ export default class ProfileScene extends Phaser.Scene {
         try {
             const result = await profileApi.updateMe(payload);
             this.loadedProfile = result;
-
             this.renderStats(result.stats);
 
             authStore.setSession({

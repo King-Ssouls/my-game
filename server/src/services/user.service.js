@@ -33,6 +33,7 @@ function sanitizeProgress(progressDocument) {
         userId: progressDocument.userId.toString(),
         unlockedLevels: progressDocument.unlockedLevels || [],
         completedLevels: progressDocument.completedLevels || [],
+        levelStars: progressDocument.levelStars || [],
         currentLevel: progressDocument.currentLevel || 1,
         totalScore: progressDocument.totalScore || 0,
         totalDeaths: progressDocument.totalDeaths || 0,
@@ -58,13 +59,17 @@ function formatPlayTime(totalSeconds = 0) {
 function buildStats(progressDocument) {
     const unlockedLevels = progressDocument?.unlockedLevels || [];
     const completedLevels = progressDocument?.completedLevels || [];
- 
+    const levelStars = progressDocument?.levelStars || [];
 
     const totalPlayTime = Number(progressDocument?.totalPlayTime || 0);
+    const totalStars = levelStars.reduce((sum, item) => {
+        return sum + Math.max(0, Number(item?.stars) || 0);
+    }, 0);
 
     return {
         unlockedLevelsCount: unlockedLevels.length,
         completedLevelsCount: completedLevels.length,
+        totalStars,
         totalScore: Number(progressDocument?.totalScore || 0),
         totalDeaths: Number(progressDocument?.totalDeaths || 0),
         totalPlayTime,
