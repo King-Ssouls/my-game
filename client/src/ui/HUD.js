@@ -20,8 +20,8 @@ export default class HUD {
         this.panel.style.gap = '10px';
 
         this.healthText = this.createBadge('HP: 0/0', '24px');
-        this.scoreText = this.createBadge('\u041e\u0447\u043a\u0438: 0', '22px');
-        this.timeText = this.createBadge('\u0412\u0440\u0435\u043c\u044f: 00:00', '22px');
+        this.scoreText = this.createBadge('Очки: 0', '22px');
+        this.timeText = this.createBadge('Время: 00:00', '22px');
 
         this.statusText = document.createElement('div');
         this.statusText.style.position = 'absolute';
@@ -57,6 +57,7 @@ export default class HUD {
         element.style.fontWeight = '700';
         element.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.2)';
         element.style.width = 'fit-content';
+
         return element;
     }
 
@@ -65,15 +66,16 @@ export default class HUD {
     }
 
     setScore(score) {
-        this.scoreText.textContent = `\u041e\u0447\u043a\u0438: ${score}`;
+        this.scoreText.textContent = `Очки: ${score}`;
     }
 
     setTime(text) {
-        this.timeText.textContent = `\u0412\u0440\u0435\u043c\u044f: ${text}`;
+        this.timeText.textContent = `Время: ${text}`;
     }
 
     setStatus(text) {
         const value = text || '';
+
         this.statusText.textContent = value;
         this.statusText.style.display = value ? 'block' : 'none';
     }

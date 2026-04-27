@@ -614,7 +614,13 @@ export default class GameScene extends Phaser.Scene {
 
         this.hud?.setStatus('Уровень пройден');
 
-        this.showVictoryMenu();
+        this.scene.start('ResultScene', {
+            levelNumber: this.levelNumber,
+            time: this.levelTimer?.getMs?.() ?? 0,
+            score: this.score,
+            kills: this.enemiesDefeated,
+            damageTaken: this.hitsTaken
+        });
     }
 
     updateHud() {
