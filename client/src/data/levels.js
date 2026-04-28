@@ -119,7 +119,7 @@ export const levels = [
     {
         number: 1,
         title: 'Сумеречная тропа',
-        description: 'Мягкий старт с террасами и первой длинной дорожкой наверху.',
+        description: 'Мягкий старт с террасами и первой длинной дорожкой наверху',
         background: forestBackground,
         platformPreview: platformPreview1,
         playerSpawn: { x: 120, y: 600 },
@@ -147,7 +147,7 @@ export const levels = [
     {
         number: 2,
         title: 'Мост шипов',
-        description: 'Шипы перекрывают землю, а наверху враги не дают спокойно пройти.',
+        description: 'Шипы перекрывают землю, а наверху враги не дают спокойно пройти',
         background: forestBackground,
         platformPreview: platformPreview2,
         playerSpawn: { x: 120, y: 600 },
@@ -178,7 +178,7 @@ export const levels = [
     {
         number: 3,
         title: 'Барханы первого ветра',
-        description: 'Пустыня с длинным подвесным маршрутом и короткими спусками.',
+        description: 'Пустыня с длинным подвесным маршрутом и короткими спускам',
         background: desertBackground1,
         platformPreview: platformPreview3,
         playerSpawn: { x: 120, y: 600 },
@@ -207,7 +207,7 @@ export const levels = [
     {
         number: 4,
         title: 'Оазис каменной стены',
-        description: 'Большая стена и длинная крыша, но безопасных зон стало меньше.',
+        description: 'Большая стена и длинная крыша, но безопасных зон стало меньше',
         background: desertBackground2,
         platformPreview: platformPreview4,
         playerSpawn: { x: 120, y: 600 },
@@ -237,7 +237,7 @@ export const levels = [
     {
         number: 5,
         title: 'Двойная башня',
-        description: 'Мост между башнями уже не выглядит безопасным, а внизу почти нет права на ошибку.',
+        description: 'Мост между башнями уже не выглядит безопасным, а внизу почти нет права на ошибку',
         background: desertBackground3,
         platformPreview: platformPreview5,
         playerSpawn: { x: 120, y: 600 },
@@ -267,7 +267,7 @@ export const levels = [
     {
         number: 6,
         title: 'Врата храма',
-        description: 'Высокие ворота и верхний маршрут, где враги перекрывают почти каждую площадку.',
+        description: 'Высокие ворота и верхний маршрут, где враги перекрывают почти каждую площадку',
         background: templeBackground1,
         platformPreview: platformPreview6,
         playerSpawn: { x: 120, y: 600 },
@@ -300,7 +300,7 @@ export const levels = [
     {
         number: 7,
         title: 'Алтарь колонн',
-        description: 'Уровень на узкие башни и короткие переходы между ними.',
+        description: 'Уровень на узкие башни и короткие переходы между ними',
         background: templeBackground2,
         platformPreview: platformPreview7,
         playerSpawn: { x: 120, y: 600 },
@@ -332,7 +332,7 @@ export const levels = [
     {
         number: 8,
         title: 'Лунное святилище',
-        description: 'Зигзаг стал уже, шипов больше, а наверху ждёт самый злой отрезок.',
+        description: 'Зигзаг стал уже, шипов больше, а наверху ждёт самый злой отрезок',
         background: templeBackground3,
         platformPreview: platformPreview1,
         playerSpawn: { x: 120, y: 600 },
@@ -365,7 +365,7 @@ export const levels = [
     {
         number: 9,
         title: 'Кристальный разлом',
-        description: 'Большие полки закончились: теперь нужно сражаться и прыгать почти без запаса.',
+        description: 'Большие полки закончились: теперь нужно сражаться и прыгать почти без запаса',
         background: crystalBackground,
         platformPreview: platformPreview2,
         playerSpawn: { x: 120, y: 600 },
