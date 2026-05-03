@@ -69,7 +69,7 @@ export default class LevelCard extends Phaser.GameObjects.Container {
 			this.levelDescription,
 			{
 				fontFamily: 'Arial',
-				fontSize: '10px',
+				fontSize: '11px',
 				color: '#94a3b8',
 				wordWrap: { width: this.cardWidth - 118, useAdvancedWrap: true }
 			}

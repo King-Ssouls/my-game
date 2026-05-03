@@ -25,7 +25,7 @@ export function formatTime(ms) {
             },
 
             getElapsedSeconds() {
-                return Math.floor(this.getMs() / 1000);
+                return Math.floor(this.getMs() / 1000);Ф
             },
 
             getFormatted() {

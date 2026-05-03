@@ -397,7 +397,7 @@ export const levels = [
     {
         number: 10,
         title: 'Пантеон эха',
-        description: 'Финальная и трудная карта: узкие ярусы, шипы под каждым срывом и сильные враги.',
+        description: 'Финальная и трудная карта: узкие ярусы, шипы под каждым срывом и сильные враги',
         background: templeBackground4,
         platformPreview: platformPreview3,
         playerSpawn: { x: 120, y: 600 },

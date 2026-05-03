@@ -5,8 +5,8 @@ import { clearGameHud } from '../ui/HUD.js';
 
 const LEVEL_CARD_WIDTH = 336;
 const LEVEL_CARD_HEIGHT = 126;
-const LEVEL_COLUMNS = 5;
-const LEVEL_ROWS = 2;
+const LEVEL_COLUMNS = 4;
+const LEVEL_ROWS = 3;
 const LEVEL_COLUMN_GAP = 24;
 const LEVEL_ROW_GAP = 28;
 
